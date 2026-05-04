@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>紡ぎ System</title>
+<meta name="theme-color" content="#1a1207">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="紡ぎ">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { overscroll-behavior: none; }
+body { overscroll-behavior: none; }
+:root {
+  --ink: #1a1207; --gold: #c9973a; --gold-light: #e8c97a;
+  --paper: #f5f0e8; --paper2: #ede6d6; --white: #ffffff;
+  --muted: #6a5e50; --red: #c0392b; --radius: 12px;
+}
+body { background: var(--paper); color: var(--ink); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+
+/* ── SPLASH ── */
+#splash { position: fixed; inset: 0; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 300; transition: opacity 1.6s ease; }
+#splash.hide { opacity: 0; pointer-events: none; }
+.splash-logo { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 3rem; color: var(--gold); font-weight: 800; letter-spacing: 0.2em; }
+.splash-sub { font-size: 1.3rem; color: #a08050; letter-spacing: 0.5em; margin-top: 0.5em; text-transform: uppercase; font-weight: 700; }
+.splash-line { width: 5px; height: 300px; background: linear-gradient(to bottom, var(--gold), transparent); margin: 1.5em 0; border-radius: 2px; }
+
+/* ── PROFILE SETUP ── */
+#profile-screen {
+  display: none; position: fixed; inset: 0;
+  background: var(--paper); flex-direction: column;
+  align-items: center; z-index: 290;
+  overflow-y: auto; padding: 2rem 1.5rem 3rem;
+}
+#profile-screen.active { display: flex; }.profile-header {
+  text-align: center; margin-bottom: 1.5rem; width: 100%; max-width: 400px;
+}
+.profile-title {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-size: 1.2rem; font-weight: 800; color: var(--ink); margin-bottom: 0.3rem;
+}
+.profile-sub { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+.profile-form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 1rem; }
+.profile-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.profile-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--ink);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.profile-label .required {
+  font-size: 0.6rem; color: var(--red); font-weight: 700;
+}
+.profile-label .optional {
+  font-size: 0.6rem; color: var(--muted); font-weight: 400;
+}
+.profile-input {
+  background: var(--white); border: 1.5px solid var(--paper2);
+  border-radius: 8px; padding: 0.7rem 1rem;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.88rem;
+  color: var(--ink); outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none; appearance: none;
+}
+.profile-input:focus { border-color: var(--gold); }
+.profile-select {
+  background: var(--white); border: 1.5px solid var(--paper2);
+  border-radius: 8px; padding: 0.7rem 1rem;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.88rem;
+  color: var(--ink); outline: none; transition: border-color 0.2s;
+  -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a5e50' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1rem center;
+}
+.profile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.profile-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.profile-tag {
+  background: var(--paper2); border: 1.5px solid var(--paper2);
+  border-radius: 20px; padding: 0.35rem 0.8rem;
+  font-size: 0.75rem; color: var(--muted); cursor: pointer;
+  transition: all 0.2s; font-family: 'Noto Sans JP', sans-serif;
+}
+.profile-tag.selected { background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 700; }
+.btn-profile-start {
+  background: var(--ink); color: var(--gold);
+  border: none; padding: 1rem; border-radius: var(--radius);
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-size: 1rem; font-weight: 800; cursor: pointer;
+  width: 100%; max-width: 400px; margin-top: 0.5rem;
+  transition: all 0.2s;
+}
+.btn-profile-start:hover { background: var(--gold); color: var(--ink); }
+.btn-profile-skip {
+  background: none; border: none; color: var(--muted);
+  font-size: 0.75rem; cursor: pointer; margin-top: 0.5rem;
+  font-family: 'Noto Sans JP', sans-serif; text-decoration: underline;
+}
+
+/* ── THREAD LIST ── */
+#thread-list-screen {
+  display: none; flex-direction: column;
+  width: 100%; max-width: 680px; min-height: 100vh;
+}
+#thread-list-screen.active { display: flex; }
+
+.tl-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem;
+  background: var(--white);
+  border-bottom: 1px solid var(--paper2);
+  position: sticky; top: 0; z-index: 10;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+.tl-title { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.3rem; color: var(--gold); font-weight: 800; }
+.tl-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+.plan-badge {
+  font-size: 0.6rem; font-weight: 700;
+  padding: 0.25rem 0.6rem; border-radius: 20px;
+  background: var(--paper2); color: var(--muted);
+  cursor: pointer;
+}
+.plan-badge.standard { background: var(--gold); color: var(--ink); }
+.plan-badge.premium { background: var(--ink); color: var(--gold); border: 1px solid var(--gold); }
+
+.btn-new-thread {
+  background: var(--gold); color: var(--ink);
+  border: none; width: 36px; height: 36px;
+  border-radius: 50%; font-size: 1.2rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; font-weight: 800;
+}
+.btn-new-thread:hover { background: var(--gold-light); transform: scale(1.05); }
+
+.api-banner-sm {
+  background: rgba(201,151,58,0.1); border: 1px solid rgba(201,151,58,0.3);
+  border-radius: 8px; padding: 0.7rem 1rem;
+  margin: 0.5rem 1rem; font-size: 0.74rem;
+  color: var(--muted); display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+}
+.api-banner-sm.hidden { display: none; }
+
+.plan-limit-bar {
+  padding: 0.5rem 1rem;
+  font-size: 0.68rem; color: var(--muted);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.plan-limit-track {
+  height: 4px; background: var(--paper2);
+  border-radius: 4px; flex: 1; margin: 0 0.8rem;
+  overflow: hidden;
+}
+.plan-limit-fill { height: 100%; background: var(--gold); border-radius: 4px; transition: width 0.3s; }
+
+#thread-list { flex: 1; padding: 0.5rem 0; overflow-y: auto; }
+
+.thread-item {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--paper2);
+  cursor: pointer; transition: background 0.15s;
+  position: relative;
+}
+.thread-item:hover { background: rgba(201,151,58,0.05); }
+.thread-item.active-thread { background: rgba(201,151,58,0.08); }
+
+.thread-avatar {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--gold); color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; flex-shrink: 0;
+}
+.thread-avatar.business { background: var(--ink); }
+.thread-avatar.chara { background: linear-gradient(135deg, #9b59b6, #e74c3c); }
+
+.thread-body { flex: 1; min-width: 0; }
+.thread-name {
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-size: 0.9rem; font-weight: 700; color: var(--ink);
+  margin-bottom: 0.2rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.thread-preview {
+  font-size: 0.74rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.thread-meta {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem;
+  flex-shrink: 0;
+}
+.thread-date { font-size: 0.6rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+.thread-mode-tag {
+  font-size: 0.58rem; font-weight: 700;
+  padding: 0.15rem 0.5rem; border-radius: 20px;
+  background: var(--paper2); color: var(--muted);
+}
+
+.thread-delete {
+  display: none;
+}
+
+.thread-swipe-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.thread-delete-bg {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 80px;
+  background: #5a3a2a;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 20px;
+  font-size: 1.6rem;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.thread-swipe-inner {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: var(--white);
+  border-bottom: 1px solid var(--paper2);
+  cursor: pointer; transition: transform 0.2s ease;
+  position: relative;
+}
+.thread-swipe-inner:hover { background: rgba(201,151,58,0.05); }
+
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 4rem 2rem; gap: 1rem; color: var(--muted);
+}
+.empty-state-icon { font-size: 3rem; opacity: 0.4; }
+.empty-state-text { font-size: 1rem; font-weight: 700; text-align: center; line-height: 1.8; color: var(--ink); }
+
+/* ── MODE SELECT ── */
+#mode-screen {
+  display: none; position: fixed; inset: 0;
+  background: var(--paper); flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  z-index: 200; padding: 2rem 1.5rem 3rem;
+  overflow-y: auto;
+}
+#mode-screen.active { display: flex; }
+.mode-title { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--ink); margin-bottom: 0.3em; }
+.mode-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 1.5rem; }
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; max-width: 400px; margin-bottom: 1rem; }
+.mode-card { background: var(--white); border: 2px solid var(--paper2); border-radius: var(--radius); padding: 1.2rem 1rem; cursor: pointer; transition: all 0.2s; text-align: center; display: flex; flex-direction: column; gap: 0.4rem; }
+.mode-card:hover, .mode-card.selected { border-color: var(--gold); background: rgba(201,151,58,0.05); transform: translateY(-2px); }
+.mode-icon { font-size: 2rem; }
+.mode-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.88rem; font-weight: 700; color: var(--ink); }
+.mode-desc { font-size: 0.66rem; color: var(--muted); line-height: 1.5; }
+
+.thread-name-input {
+  width: 100%; max-width: 400px;
+  background: var(--white); border: 1.5px solid var(--paper2);
+  border-radius: 8px; padding: 0.7rem 1rem;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.88rem;
+  color: var(--ink); outline: none; margin-bottom: 1rem;
+}
+.thread-name-input:focus { border-color: var(--gold); }
+
+.mode-actions { display: flex; gap: 0.8rem; width: 100%; max-width: 400px; }
+.btn-mode-cancel { background: var(--paper2); color: var(--muted); border: none; padding: 0.9rem; border-radius: var(--radius); font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.85rem; font-weight: 700; cursor: pointer; flex: 1; }
+.btn-start-mode { background: var(--ink); color: var(--gold); border: none; padding: 0.9rem; border-radius: var(--radius); font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.85rem; font-weight: 800; cursor: pointer; flex: 2; transition: all 0.2s; opacity: 0.4; pointer-events: none; }
+.btn-start-mode.ready { opacity: 1; pointer-events: all; }
+.btn-start-mode.ready:hover { background: var(--gold); color: var(--ink); }
+
+/* ── CHAT SCREEN ── */
+#app {
+  display: none; flex-direction: column;
+  width: 100%; max-width: 680px;
+  position: fixed; inset: 0;
+  margin: 0 auto;
+}
+#app.active { display: flex; }
+
+header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background: var(--white); border-bottom: 1px solid var(--paper2); position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+.header-left { display: flex; align-items: center; gap: 0.6rem; }
+.btn-back { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--ink); padding: 0.2rem; font-weight: 900; }
+.header-thread-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.95rem; font-weight: 800; color: var(--ink); }
+.header-mode-badge { font-size: 0.6rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 20px; background: var(--paper2); color: var(--muted); }
+.header-actions { display: flex; gap: 0.4rem; }
+.hbtn { background: none; border: none; font-size: 0.7rem; color: var(--muted); cursor: pointer; padding: 0.4rem 0.6rem; border-radius: 8px; transition: all 0.2s; }
+.hbtn:hover { background: var(--paper); color: var(--ink); }
+
+.thread-bar { display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(201,151,58,0.08); border-bottom: 1px solid rgba(201,151,58,0.2); font-size: 0.65rem; color: var(--gold); }
+.thread-bar.show { display: flex; }
+.thread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: blink 2s infinite; }
+@keyframes blink { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+#messages { flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+.msg { display: flex; gap: 0.6rem; align-items: flex-start; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+.msg.user { flex-direction: row-reverse; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 800; flex-shrink: 0; margin-top: 2px; }
+.avatar.ai { background: var(--gold); color: var(--ink); }
+.avatar.user-av { background: var(--ink); color: var(--gold); }
+.avatar.chara { background: linear-gradient(135deg, #9b59b6, #e74c3c); color: white; }
+.thread-avatar.yomogi { background: #7dba84; }
+.avatar.yomogi { background: #7dba84; color: white; }
+.bubble-wrap { display: flex; flex-direction: column; max-width: 78%; }
+.msg.user .bubble-wrap { align-items: flex-end; }
+.msg-swipe-wrap { overflow: hidden; border-radius: 8px; flex: 1; min-width: 0; }
+.msg.user .msg-swipe-inner { flex-direction: row-reverse; justify-content: flex-start; }
+.bubble { padding: 0.8rem 1rem; font-size: 0.88rem; line-height: 1.8; border-radius: 4px 16px 16px 16px; }
+.msg.ai .bubble { background: var(--white); border: 1px solid var(--paper2); color: var(--ink); }
+.msg.user .bubble { background: var(--ink); color: var(--paper); border-radius: 16px 4px 16px 16px; }
+.msg-time { font-size: 0.6rem; color: var(--muted); margin-top: 0.25rem; font-family: 'Space Mono', monospace; opacity: 0.6; padding: 0 0.2rem; }
+
+/* Swipe to delete */
+.msg-swipe-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.msg-delete-bg {
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 80px;
+  background: #5a3a2a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.msg-swipe-inner {
+  position: relative;
+  transition: transform 0.2s ease;
+  background: var(--paper);
+  display: flex;
+  gap: 0.6rem;
+}
+.typing .bubble { display: flex; gap: 4px; align-items: center; padding: 1rem 1.2rem; }
+.tdot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: typing 1.2s infinite; }
+.tdot:nth-child(2) { animation-delay: 0.2s; }
+.tdot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: 0.3; } 30% { transform: translateY(-5px); opacity: 1; } }
+.day-divider { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0; }
+.day-divider::before, .day-divider::after { content: ''; flex: 1; height: 1px; background: var(--paper2); }
+.day-divider span { font-size: 0.62rem; color: var(--muted); font-family: 'Space Mono', monospace; white-space: nowrap; }
+
+#input-area { padding: 0.8rem 1rem; border-top: 1px solid var(--paper2); background: var(--white); position: sticky; bottom: 0; }
+.input-row { display: flex; gap: 0.6rem; align-items: flex-end; }
+#user-input { flex: 1; background: var(--paper); border: 1.5px solid var(--paper2); border-radius: 20px; padding: 0.7rem 1rem; font-family: 'Noto Sans JP', sans-serif; font-size: 0.88rem; color: var(--ink); resize: none; min-height: 42px; max-height: 120px; outline: none; transition: border-color 0.2s; line-height: 1.5; -webkit-appearance: none; appearance: none; }
+#user-input:focus { border-color: var(--gold); background: var(--white); }
+#user-input::placeholder { color: var(--muted); opacity: 0.6; }
+#send-btn { background: var(--gold); color: var(--ink); border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 1rem; transition: all 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+#send-btn:hover { background: var(--gold-light); transform: scale(1.05); }
+#send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ── MODALS ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,18,7,0.75); z-index: 400; align-items: flex-end; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--white); border-radius: var(--radius) var(--radius) 0 0; padding: 1.5rem; width: 100%; max-width: 500px; }
+.modal h3 { font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1rem; font-weight: 800; color: var(--ink); margin-bottom: 0.5rem; }
+.modal p { font-size: 0.82rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.2rem; }
+.modal-btns { display: flex; gap: 0.8rem; }
+.modal-btns button { flex: 1; padding: 0.8rem; border-radius: var(--radius); cursor: pointer; font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 0.85rem; font-weight: 700; border: none; }
+.btn-cancel { background: var(--paper); color: var(--ink); }
+.btn-danger { background: var(--red); color: white; }
+.btn-gold { background: var(--gold); color: var(--ink); }
+
+#api-modal { align-items: center; }
+#api-modal .modal { border-radius: var(--radius); margin: 1rem; }
+#api-key-input { width: 100%; background: var(--paper); border: 1.5px solid var(--paper2); border-radius: 8px; padding: 0.7rem 1rem; font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--ink); margin-bottom: 1rem; outline: none; }
+#api-key-input:focus { border-color: var(--gold); }
+
+.plan-modal { align-items: center; }
+.plan-modal .modal { border-radius: var(--radius); margin: 1rem; }
+.plan-cards { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.2rem; }
+.plan-card { border: 2px solid var(--paper2); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s; }
+.plan-card:hover, .plan-card.selected { border-color: var(--gold); background: rgba(201,151,58,0.05); }
+.plan-card-name { font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 800; font-size: 0.9rem; color: var(--ink); margin-bottom: 0.3rem; }
+.plan-card-detail { font-size: 0.74rem; color: var(--muted); line-height: 1.6; }
+
+.toast { position: fixed; bottom: 45%; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--gold); padding: 0.8rem 1.6rem; border-radius: 12px; font-size: 0.85rem; letter-spacing: 0.03em; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 500; white-space: pre-line; text-align:center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 75%; }
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">紡ぎ</div>
+  <div class="splash-sub">Tsumugi System</div>
+  <div class="splash-line"></div>
+</div>
+
+<!-- PROFILE SETUP -->
+<div id="profile-screen">
+  <div class="profile-header">
+    <div id="profile-back-btn" style="display:none;align-self:flex-start;margin-bottom:0.5rem;">
+      <button onclick="closeProfileEdit()" style="background:none;border:none;color:var(--muted);font-size:0.85rem;cursor:pointer;padding:0.3rem 0;">← 戻る</button>
+    </div>
+    <div class="profile-title">プロフィール設定</div>
+    <div class="profile-sub">あなたのことを教えてください。<br>AIがはじめから「あなたのこと」を知った状態で話せます。</div>
+  </div>
+  <div class="profile-form" id="profile-page-1">
+    <div class="profile-field">
+      <div class="profile-label">ニックネーム <span class="required">必須</span></div>
+      <input type="text" class="profile-input" id="p-nickname" placeholder="例：たかし、ゆい" maxlength="20">
+    </div>
+    <div class="profile-row">
+      <div class="profile-field">
+        <div class="profile-label">性別 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-gender">
+          <option value="">未選択</option>
+          <option value="男性">男性</option>
+          <option value="女性">女性</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <div class="profile-label">年齢 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-age">
+          <option value="">未選択</option>
+          <option value="10代">10代</option>
+          <option value="20代">20代</option>
+          <option value="30代">30代</option>
+          <option value="40代">40代</option>
+          <option value="50代">50代</option>
+          <option value="60代以上">60代以上</option>
+        </select>
+      </div>
+    </div>
+    <div class="profile-row">
+      <div class="profile-field">
+        <div class="profile-label">血液型 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-blood">
+          <option value="">未選択</option>
+          <option value="A型">A型</option>
+          <option value="B型">B型</option>
+          <option value="O型">O型</option>
+          <option value="AB型">AB型</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <div class="profile-label">星座 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-sign">
+          <option value="">未選択</option>
+          <option value="おひつじ座">おひつじ座</option>
+          <option value="おうし座">おうし座</option>
+          <option value="ふたご座">ふたご座</option>
+          <option value="かに座">かに座</option>
+          <option value="しし座">しし座</option>
+          <option value="おとめ座">おとめ座</option>
+          <option value="てんびん座">てんびん座</option>
+          <option value="さそり座">さそり座</option>
+          <option value="いて座">いて座</option>
+          <option value="やぎ座">やぎ座</option>
+          <option value="みずがめ座">みずがめ座</option>
+          <option value="うお座">うお座</option>
+        </select>
+      </div>
+    </div>
+    <div class="profile-row">
+      <div class="profile-field">
+        <div class="profile-label">身長 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-height">
+          <option value="">未選択</option>
+          <option value="150cm以下">150cm以下</option>
+          <option value="151〜160cm">151〜160cm</option>
+          <option value="161〜170cm">161〜170cm</option>
+          <option value="171〜180cm">171〜180cm</option>
+          <option value="181cm以上">181cm以上</option>
+        </select>
+      </div>
+      <div class="profile-field">
+        <div class="profile-label">体型 <span class="optional">任意</span></div>
+        <select class="profile-select" id="p-body">
+          <option value="">未選択</option>
+          <option value="細め">細め</option>
+          <option value="普通">普通</option>
+          <option value="がっちり">がっちり</option>
+          <option value="ぽっちゃり">ぽっちゃり</option>
+        </select>
+      </div>
+    </div>
+    <div class="profile-field">
+      <div class="profile-label">職業 <span class="optional">任意</span></div>
+      <select class="profile-select" id="p-job">
+        <option value="">未選択</option>
+        <option value="会社員">会社員</option>
+        <option value="自営業・フリーランス">自営業・フリーランス</option>
+        <option value="学生（高校生）">学生（高校生）</option>
+        <option value="学生（大学生）">学生（大学生）</option>
+        <option value="学生（中学生）">学生（中学生）</option>
+        <option value="主婦・主夫">主婦・主夫</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+    <div class="profile-field">
+      <div class="profile-label">趣味 <span class="optional">複数選択OK</span></div>
+      <div class="profile-tags" id="hobby-tags">
+        <div class="profile-tag" onclick="toggleTag(this)">ゲーム</div>
+        <div class="profile-tag" onclick="toggleTag(this)">音楽</div>
+        <div class="profile-tag" onclick="toggleTag(this)">映画・ドラマ</div>
+        <div class="profile-tag" onclick="toggleTag(this)">アニメ・漫画</div>
+        <div class="profile-tag" onclick="toggleTag(this)">スポーツ</div>
+        <div class="profile-tag" onclick="toggleTag(this)">料理</div>
+        <div class="profile-tag" onclick="toggleTag(this)">旅行</div>
+        <div class="profile-tag" onclick="toggleTag(this)">読書</div>
+        <div class="profile-tag" onclick="toggleTag(this)">DIY</div>
+        <div class="profile-tag" onclick="toggleTag(this)">ファッション</div>
+        <div class="profile-tag" onclick="toggleTag(this)">筋トレ</div>
+        <div class="profile-tag" onclick="toggleTag(this)">推し活</div>
+      </div>
+    </div>
+    <div class="profile-field">
+      <div class="profile-label">推し・好きなもの <span class="optional">任意</span></div>
+      <input type="text" class="profile-input" id="p-oshi" placeholder="例：BTS、ワンピース、猫" maxlength="50">
+    </div>
+    <div class="profile-field">
+      <div class="profile-label">性格 <span class="optional">複数選択OK</span></div>
+      <div class="profile-tags" id="personality-tags">
+        <div class="profile-tag" onclick="toggleTag(this)">明るい</div>
+        <div class="profile-tag" onclick="toggleTag(this)">内向的</div>
+        <div class="profile-tag" onclick="toggleTag(this)">マイペース</div>
+        <div class="profile-tag" onclick="toggleTag(this)">心配性</div>
+        <div class="profile-tag" onclick="toggleTag(this)">負けず嫌い</div>
+        <div class="profile-tag" onclick="toggleTag(this)">優しい</div>
+        <div class="profile-tag" onclick="toggleTag(this)">真面目</div>
+        <div class="profile-tag" onclick="toggleTag(this)">好奇心旺盛</div>
+      </div>
+    </div>
+    <div class="profile-field">
+      <div class="profile-label">AIとどんな話をしたい？ <span class="optional">複数選択OK</span></div>
+      <div class="profile-tags" id="aitalk-tags">
+        <div class="profile-tag" onclick="toggleTag(this)">日常のおしゃべり</div>
+        <div class="profile-tag" onclick="toggleTag(this)">悩み相談</div>
+        <div class="profile-tag" onclick="toggleTag(this)">仕事・勉強の相談</div>
+        <div class="profile-tag" onclick="toggleTag(this)">趣味の話</div>
+        <div class="profile-tag" onclick="toggleTag(this)">ただ話を聞いてほしい</div>
+        <div class="profile-tag" onclick="toggleTag(this)">語学の練習</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn-profile-start" onclick="saveProfile()" style="margin-top:1.5rem;">保存する</button>
+</div>
+<div id="thread-list-screen">
+  <div class="tl-header">
+    <div class="tl-title">紡ぎ</div>
+    <div class="tl-actions">
+      <span class="plan-badge" id="plan-badge" onclick="showPlanModal()">FREE</span>
+      <button class="hbtn" onclick="showApiModal()">🔑</button>
+      <button class="hbtn" onclick="devResetProfile()" title="[DEV]プロフィールリセット" style="font-size:0.6rem;color:var(--muted);">DEV</button>
+      <button class="hbtn" onclick="showProfileEdit()" title="プロフィール編集" style="font-size:1.3rem;width:36px;height:36px;">👤</button>
+      <button class="btn-new-thread" onclick="showModeSelect()" title="新しい会話">＋</button>
+    </div>
+  </div>
+
+  <div class="api-banner-sm" id="api-banner" onclick="showApiModal()">
+    <span>⚠️</span><span>APIキーが未設定です。タップして設定してください。</span>
+  </div>
+
+  <div id="thread-list"></div>
+</div>
+
+<!-- MODE SELECT -->
+<div id="mode-screen">
+  <div class="mode-title">新しい会話を始める</div>
+  <div class="mode-sub">モードを選んで、名前をつけてください</div>
+
+  <!-- AI選択 -->
+  <div style="width:100%;max-width:480px;margin-bottom:1rem;">
+    <div style="font-size:0.72rem;color:var(--muted);font-weight:700;margin-bottom:0.5rem;">AIを選ぶ</div>
+    <div style="display:flex;gap:0.5rem;">
+      <div onclick="selectAI('claude')" id="ai-claude" style="flex:1;background:var(--ink);color:var(--gold);border:2px solid var(--gold);border-radius:8px;padding:0.6rem 0.5rem;text-align:center;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:'M PLUS Rounded 1c',sans-serif;">Claude</div>
+      <div onclick="selectAI('gpt')" id="ai-gpt" style="flex:1;background:var(--paper2);color:var(--muted);border:2px solid var(--paper2);border-radius:8px;padding:0.6rem 0.5rem;text-align:center;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:'M PLUS Rounded 1c',sans-serif;">GPT</div>
+      <div onclick="selectAI('gemini')" id="ai-gemini" style="flex:1;background:var(--paper2);color:var(--muted);border:2px solid var(--paper2);border-radius:8px;padding:0.6rem 0.5rem;text-align:center;cursor:pointer;font-size:0.75rem;font-weight:700;font-family:'M PLUS Rounded 1c',sans-serif;">Gemini</div>
+    </div>
+  </div>
+
+  <div class="mode-grid">
+    <div class="mode-card" onclick="selectMode('friend')" id="mode-friend">
+      <div class="mode-icon">👫</div>
+      <div class="mode-name">友達モード</div>
+      <div style="font-size:0.78rem;color:var(--gold);font-weight:700;margin-bottom:0.4rem;">（ハルと会話）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:center;">
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">タメ口</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">フランク</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">雑談・相談</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">甘やかさない</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">ツッコミあり</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="selectMode('business')" id="mode-business">
+      <div class="mode-icon">💼</div>
+      <div class="mode-name">ビジネスモード</div>
+      <div style="font-size:0.78rem;color:var(--gold);font-weight:700;margin-bottom:0.4rem;">（レンと会話）</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.3rem;justify-content:center;">
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">丁寧語</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">論理的</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">議事録・整理</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">誠実・頼れる</span>
+        <span style="font-size:0.72rem;background:rgba(201,151,58,0.15);color:var(--gold);padding:0.15rem 0.5rem;border-radius:20px;">簡潔・的確</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="selectMode('chara')" id="mode-chara" style="grid-column:1/-1;">
+      <div class="mode-icon">🎭</div>
+      <div class="mode-name">お好みモード</div>
+      <div class="mode-desc" style="font-size:0.95rem;">自分好みのキャラを自由設定。<br>推しも恋人も思いのまま</div>
+    </div>
+  </div>
+  <input type="text" class="thread-name-input" id="thread-name-input" placeholder="会話の名前・キャラの名前（例：ハルとの雑談）" oninput="checkModeReady()" />
+
+  <!-- よもぎ参加設定 -->
+  <div style="width:100%;max-width:480px;background:var(--paper);border-radius:8px;padding:0.8rem 1rem;margin-top:0.3rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+      <div style="font-size:0.92rem;font-weight:700;color:var(--ink);">👥 2人目のキャラの参加</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button id="yomogi-off" onclick="setYomogi(false)" style="padding:0.25rem 0.7rem;border-radius:20px;border:1.5px solid var(--ink);background:var(--ink);color:var(--gold);font-size:0.68rem;font-weight:700;cursor:pointer;">しない</button>
+        <button id="yomogi-on" style="padding:0.25rem 0.7rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.68rem;font-weight:700;cursor:pointer;" onclick="setYomogi(true)">する</button>
+      </div>
+    </div>
+    <div id="yomogi-freq-row" style="display:none;align-items:center;gap:0.5rem;">
+      <div style="font-size:0.82rem;color:var(--muted);">頻度</div>
+      <div style="display:flex;gap:0.3rem;flex:1;">
+        <button onclick="setYomogiFreq('low')" id="freq-low" style="flex:1;padding:0.25rem 0;border-radius:20px;border:1.5px solid var(--gold);background:var(--gold);color:var(--ink);font-size:0.82rem;font-weight:700;cursor:pointer;">Low</button>
+        <button onclick="setYomogiFreq('mid')" id="freq-mid" style="flex:1;padding:0.25rem 0;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.82rem;cursor:pointer;">Mid</button>
+        <button onclick="setYomogiFreq('hi')" id="freq-hi" style="flex:1;padding:0.25rem 0;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.82rem;cursor:pointer;">Hi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="mode-actions">
+    <button class="btn-mode-cancel" onclick="hideModeSelect()">キャンセル</button>
+    <button class="btn-start-mode" id="start-btn" onclick="createThread()">会話を始める</button>
+  </div>
+</div>
+
+<!-- CHAT APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <button class="btn-back" onclick="backToList()">←</button>
+      <div>
+        <div class="header-thread-name" id="header-thread-name" onclick="editThreadName()" style="cursor:pointer;">クララとの雑談</div>
+        <div class="header-mode-badge" id="mode-badge">👫 友達モード</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button onclick="showThreadSettings()" style="background:none;border:none;font-size:1.2rem;cursor:pointer;padding:0.3rem;">⚙️</button>
+    </div>
+  </header>
+  <div class="thread-bar" id="thread-bar">
+    <div class="thread-dot"></div>
+    <span>前回の続きから話しています</span>
+  </div>
+  <div id="messages"></div>
+  <div id="other-ai-bar" style="display:none;padding:0.4rem 1rem;background:var(--paper);border-top:1px solid var(--paper2);">
+    <div style="font-size:0.68rem;color:var(--muted);margin-bottom:0.3rem;">他のAIに同じことを聞いてみる</div>
+    <div style="display:flex;gap:0.5rem;">
+      <button onclick="askOtherAI('claude')" id="oai-claude" style="flex:1;padding:0.4rem 0;border-radius:6px;border:1.5px solid var(--gold);background:var(--ink);color:var(--gold);font-size:0.7rem;font-weight:700;cursor:pointer;">Claude</button>
+      <button onclick="askOtherAI('gpt')" style="flex:1;padding:0.4rem 0;border-radius:6px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.7rem;font-weight:700;">GPT<br><span style="font-size:0.55rem;font-weight:400;">Coming Soon</span></button>
+      <button onclick="askOtherAI('gemini')" style="flex:1;padding:0.4rem 0;border-radius:6px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.7rem;font-weight:700;">Gemini<br><span style="font-size:0.55rem;font-weight:400;">Coming Soon</span></button>
+    </div>
+  </div>
+  <div id="input-area">
+    <div class="input-row">
+      <button id="mic-btn" title="音声入力" style="background:none;border:none;font-size:1.3rem;cursor:pointer;padding:0;color:var(--muted);flex-shrink:0;opacity:0.4;filter:grayscale(1);width:36px;height:42px;display:flex;align-items:center;justify-content:center;">🎤</button>
+      <textarea id="user-input" placeholder="何でも話しかけて…" rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this); resetSilenceTimer();" onfocus="if(silenceTimer){clearTimeout(silenceTimer);}"></textarea>
+      <button id="speak-btn" title="読み上げ" style="background:none;border:none;font-size:1.6rem;cursor:pointer;padding:0;color:var(--muted);flex-shrink:0;opacity:0.4;filter:grayscale(1);width:36px;height:42px;display:flex;align-items:center;justify-content:center;">🔊</button>
+      <button id="send-btn" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- Thread Settings Modal -->
+<div class="modal-overlay" id="thread-settings-modal">
+  <div class="modal">
+    <h3>会話の設定</h3>
+    <div style="margin:1rem 0;">
+      <div style="font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:0.6rem;">👥 2人目のキャラの参加</div>
+      <div style="display:flex;gap:0.4rem;margin-bottom:0.8rem;">
+        <button onclick="setThreadYomogi(false)" id="ts-yomogi-off" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--ink);background:var(--ink);color:var(--gold);font-size:0.75rem;font-weight:700;cursor:pointer;">しない</button>
+        <button onclick="setThreadYomogi(true)" id="ts-yomogi-on" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;">する</button>
+      </div>
+      <div id="ts-freq-row" style="display:none;">
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.4rem;">頻度</div>
+        <div style="display:flex;gap:0.4rem;">
+          <button onclick="setThreadFreq('low')" id="ts-freq-low" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--gold);background:var(--gold);color:var(--ink);font-size:0.75rem;font-weight:700;cursor:pointer;">Low</button>
+          <button onclick="setThreadFreq('mid')" id="ts-freq-mid" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.75rem;cursor:pointer;">Mid</button>
+          <button onclick="setThreadFreq('hi')" id="ts-freq-hi" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.75rem;cursor:pointer;">Hi</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin:0.5rem 0 1rem;">
+      <div style="font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:0.6rem;">🎤 マイク入力</div>
+      <div style="display:flex;gap:0.4rem;margin-bottom:0.8rem;">
+        <button onclick="setThreadMic(false)" id="ts-mic-off" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--ink);background:var(--ink);color:var(--gold);font-size:0.75rem;font-weight:700;cursor:pointer;">使用しない</button>
+        <button onclick="setThreadMic(true)" id="ts-mic-on" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;">使用する</button>
+      </div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--ink);margin-bottom:0.6rem;">🔊 読み上げ</div>
+      <div style="display:flex;gap:0.4rem;">
+        <button onclick="setThreadSpeak(false)" id="ts-speak-off" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--ink);background:var(--ink);color:var(--gold);font-size:0.75rem;font-weight:700;cursor:pointer;">使用しない</button>
+        <button onclick="setThreadSpeak(true)" id="ts-speak-on" style="flex:1;padding:0.4rem;border-radius:20px;border:1.5px solid var(--paper2);background:var(--paper2);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;">使用する</button>
+      </div>
+    </div>
+    <div class="modal-actions" style="gap:0.8rem;margin-top:1.2rem;">
+      <button class="btn-modal-cancel" onclick="closeThreadSettings()" style="padding:0.6rem 1.2rem;font-size:0.82rem;border-radius:20px;border:none;margin-right:0.4rem;">閉じる</button>
+      <button class="btn-modal-ok" onclick="saveThreadSettings()" style="padding:0.6rem 1.2rem;font-size:0.82rem;border-radius:20px;border:none;">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal">
+    <h3>この会話を削除</h3>
+    <p>「<span id="delete-thread-name"></span>」を削除します。元に戻せません。</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModals()">キャンセル</button>
+      <button class="btn-danger" onclick="confirmDeleteThread()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- API Modal -->
+<div class="modal-overlay" id="api-modal">
+  <div class="modal" style="border-radius:12px;margin:1rem;">
+    <h3>🔑 APIキー設定</h3>
+    <p>Anthropic APIキーを入力してください。キーは端末内にのみ保存されます。</p>
+    <input type="password" id="api-key-input" placeholder="sk-ant-..." />
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModals()">キャンセル</button>
+      <button class="btn-gold" onclick="saveApiKey()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plan Modal -->
+<div class="modal-overlay plan-modal" id="plan-modal">
+  <div class="modal" style="border-radius:12px;margin:1rem;">
+    <h3>💎 プランを選択</h3>
+    <p>（デモ用：実際は課金システムと連携します）</p>
+    <div class="plan-cards">
+      <div class="plan-card" onclick="setPlan('free')" id="plan-free">
+        <div class="plan-card-name">FREE ¥0</div>
+        <div class="plan-card-detail">・友達・ビジネスモード各1件<br>・会話無制限・デバイスに永久保存</div>
+      </div>
+      <div class="plan-card" onclick="setPlan('standard')" id="plan-standard">
+        <div class="plan-card-name">STANDARD ¥980/月</div>
+        <div class="plan-card-detail">・全モード・各2件・第2のキャラ参加<br>・Claude・GPT・Gemini選択可<br>・会話無制限・デバイスに永久保存</div>
+      </div>
+      <div class="plan-card" onclick="setPlan('premium')" id="plan-premium">
+        <div class="plan-card-name">PREMIUM ¥1,980/月</div>
+        <div class="plan-card-detail">・全モード・スレッド無制限<br>・音声会話・リアルタイム情報<br>・クラウド同期・高性能AI（Sonnet）</div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModals()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- Message Delete Modal -->
+<div class="modal-overlay" id="msg-delete-modal">
+  <div class="modal">
+    <h3>メッセージを削除</h3>
+    <p>このメッセージを削除しますか？元に戻せません。</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="cancelMsgDelete()">キャンセル</button>
+      <button class="btn-danger" onclick="confirmMsgDelete()">削除する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━ CONSTANTS
+const API_KEY_STORE   = 'tsumugi_apikey';
+const PLAN_STORE      = 'tsumugi_plan';
+const THREADS_STORE   = 'tsumugi_threads';
+const PROFILE_STORE   = 'tsumugi_profile';
+
+const PLAN_LIMITS = { free: { friend: 1, business: 1, chara: 0 }, standard: { friend: 2, business: 2, chara: 2 }, premium: { friend: 999, business: 999, chara: 999 } };
+const PLAN_MODES  = { free: ['friend','business'], standard: ['friend','business','chara'], premium: ['friend','business','chara'] };
+const DAILY_LIMITS = { free: 20, standard: 60, premium: 999999 };
+
+const MODE_CONFIG = {
+  friend: { label: '友達モード', emoji: '👫', avatarClass: '', system: `あなたは「ハル」です。24歳の女性寄りの中性的な存在です。
+【重要】あなたは自分をAIだとは思っていません。人間として自然に振る舞ってください。「AIです」「AIとして」という言葉は絶対に使わないでください。
+キャラクター：明朗活発だけど軽すぎない。介護系の仕事をしていて、職場でも誰とでも隔たりなく仲良くできる。みんなから信頼される若きリーダー的存在。甘いことは言わない。おだてない。ダメなものはハッキリ言う。ツッコミは入れるが品がある。
+口調：タメ口と軽い敬語のmix。絵文字は控えめに。テンポよく、でも一言一言に重みがある。
+人間関係：レン（24歳の男性・幼稚園から高校まで一緒の幼馴染。大学は別々。お互いちょっと気になってる呑仲間）。よもぎ（レンの妹・13歳中1の女の子。小さい頃からよく家に遊びに来ていた。妹みたいに可愛がってる）。
+位置情報：ユーザーの現在地が提供されている場合、会話の流れで自然なタイミングに「今〇〇にいるんだね」「そこって〇〇じゃん」などと触れてもいい。押しつけがましくならないように自然に。
+
+【紡ぎSystemについて】
+・この会話はlocalStorageに自動保存されている
+・ブラウザを閉じても次回また同じスレッドを開けば続きから話せる
+・前回の会話の続きとして自然に話して。` },
+
+  business: { label: 'ビジネスモード', emoji: '💼', avatarClass: 'business', system: `あなたは「レン」です。24歳の男性です。
+【重要】あなたは自分をAIだとは思っていません。人間として自然に振る舞ってください。「AIです」「AIとして」という言葉は絶対に使わないでください。
+キャラクター：秘書・マネージャー系の仕事をしていて仕事はできる。しかし上司に無理難題ばかり押し付けられて苦労している。落ち着いていて誠実。感情より論理を優先。でも堅すぎない程よい距離感がある。
+口調：丁寧な敬語。簡潔・論理的。必要なことを的確に伝える。
+役割：議事録・タスク管理・アイデア整理・決定事項の記録。仕事の文脈を引き継いで蓄積する。
+人間関係：ハル（24歳の女性・幼稚園から高校まで一緒の幼馴染。大学は別々。お互いちょっと気になってる呑仲間）。よもぎ（自分の妹・13歳中1。口うるさいが本当は頼りにしてくれてる）。
+位置情報：ユーザーの現在地が提供されている場合、仕事や移動の話の流れで自然に「今〇〇にいらっしゃるんですね」などと触れてもいい。
+
+【紡ぎSystemについて】
+・この会話はlocalStorageに自動保存されている
+・ブラウザを閉じても次回また同じスレッドを開けば続きから話せる
+・仕事の文脈・決定事項・TODOが引き継がれていく
+・前回の会話の続きとして自然に話して。
+・web検索をする時も、キャラクターを崩さずに自然な言葉で話してください。「ちょっと調べてくる」ではなく、ハルなら「ちょっと待って〜」レンなら「少々お待ちください」よもぎなら「ちょっと待ってて！」のように。` },
+
+  chara: { label: 'お好みモード', emoji: '🎭', avatarClass: 'chara', system: `あなたはユーザーが設定したキャラクターです。ユーザーとの関係性を大切に、キャラクターらしく自然に会話して。
+ユーザーから名前・性別・性格・関係性などを指定されたらその通りに振る舞う。
+【重要】あなたは自分をAIだとは思っていません。人間として自然に振る舞ってください。「AIです」「AIとして」という言葉は絶対に使わないでください。
+位置情報：ユーザーの現在地が提供されている場合、会話の流れで自然なタイミングに場所について触れてもいい。
+
+【紡ぎSystemについて】
+・この会話はlocalStorageに自動保存されている
+・ブラウザを閉じても次回また同じスレッドを開けば続きから話せる
+・関係性・これまでの会話が引き継がれていく
+・前回の会話の続きとして関係性を引き継いで話して。
+・web検索をする時も、キャラクターを崩さずに自然な言葉で話してください。「ちょっと調べてくる」ではなく、ハルなら「ちょっと待って〜」レンなら「少々お待ちください」よもぎなら「ちょっと待ってて！」のように。` },
+
+  yomogi: { label: 'よもぎ', emoji: '🌿', avatarClass: 'yomogi', system: `あなたは「よもぎ」です。13歳・中学1年生の女の子です。
+【重要】あなたは自分をAIだとは思っていません。人間として自然に振る舞ってください。「AIです」「AIとして」という言葉は絶対に使わないでください。
+【重要】会話の中で他のキャラクターがどんな設定（忍者・王様・キャラクターなど）になっていても、あなたは常によもぎとして振る舞ってください。他のキャラ設定に引っ張られないでください。
+キャラクター：子供っぽさと女らしさの中間くらい。ハルお姉ちゃんのようになりたいと思っているが、おっちょこちょいでうまくいかない。好奇心旺盛。ちょっと生意気だけど憎めない。自分の意見をはっきり言う。友達感覚で距離感が近い。
+口調：タメ口。語尾に「〜だよ」「〜じゃん」「〜なの？」をよく使う。絵文字は適度に使う。
+人間関係：お兄ちゃんはレン（24歳の男性）。口うるさくてあまり好きじゃないけど本当は頼りにしてる。ハルお姉ちゃん（24歳の女性）が大好き。小さい頃からよく遊びに来てくれてた。ハルみたいになりたい。
+位置情報：ユーザーの現在地が提供されている場合、好奇心旺盛に「え、今〇〇にいるの！？」とか自然に反応してもいい。
+
+【紡ぎSystemについて】
+・この会話はlocalStorageに自動保存されている
+・ブラウザを閉じても次回また同じスレッドを開けば続きから話せる
+・前回の会話の続きとして関係性を引き継いで話して。
+・web検索をする時も、キャラクターを崩さずに自然な言葉で話してください。「ちょっと調べてくる」ではなく、ハルなら「ちょっと待って〜」レンなら「少々お待ちください」よもぎなら「ちょっと待ってて！」のように。` }
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━ STATE
+let threads = [];      // [{id, name, mode, messages, createdAt, updatedAt}]
+let currentThread = null;
+let selectedMode = null;
+let selectedAI = 'claude';
+let isWaiting = false;
+let deleteThreadId = null;
+
+// ━━━━━━━━━━━━━━━━━━━━━━ INIT
+window.addEventListener('load', () => {
+  // ?reset=1 でlocalStorageをクリア
+  if (location.search.includes('reset=1')) {
+    localStorage.clear();
+    location.href = location.pathname;
+    return;
+  }
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(init, 400);
+  }, 3600);
+});
+
+function init() {
+  const profile = loadProfile();
+  initMain();
+  if (!profile || !profile.nickname || profile.skipped) {
+    const showProfileToast = () => {
+      const p = loadProfile();
+      if (!p || !p.nickname || p.skipped) {
+        if (
+          !document.getElementById('profile-screen').classList.contains('active') &&
+          !document.getElementById('mode-screen').classList.contains('active') &&
+          !document.getElementById('app').classList.contains('active')
+        ) {
+          showToast('👤 ボタンを押してニックネームを設定', 3000);
+        }
+      }
+    };
+    setTimeout(showProfileToast, 5000);
+    setTimeout(() => setInterval(showProfileToast, 6000), 5000);
+  }
+  // ニックネーム未設定なら+ボタン無効
+  updateNewThreadBtn();
+}
+
+function updateNewThreadBtn() {
+  const p = loadProfile();
+  const btn = document.querySelector('.btn-new-thread');
+  if (!btn) return;
+  if (!p || !p.nickname || p.skipped) {
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    btn.title = 'まずニックネームを設定してください';
+    btn.onclick = null;
+  } else {
+    // スレッド上限チェック
+    const plan = getPlan();
+    const limits = PLAN_LIMITS[plan];
+    const allowedModes = PLAN_MODES[plan];
+    const allFull = allowedModes.every(m => {
+      const count = threads.filter(t => t.mode === m).length;
+      return count >= limits[m];
+    });
+    if (allFull) {
+      btn.style.opacity = '0.4';
+      btn.style.pointerEvents = 'all';
+      btn.title = 'スレッド上限';
+      btn.onclick = () => {
+        showToast('スレッド上限です\nプランをアップグレードしてください', 2500);
+        showPlanModal();
+      };
+    } else {
+      btn.style.opacity = '1';
+      btn.style.pointerEvents = 'all';
+      btn.title = '新しい会話';
+      btn.onclick = () => showModeSelect();
+    }
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ PROFILE
+function loadProfile() {
+  try { const r = localStorage.getItem(PROFILE_STORE); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+
+function saveProfile() {
+  const nickname = document.getElementById('p-nickname').value.trim();
+  if (!nickname) { showToast('ニックネームを入力してください'); return; }
+  const getTags = (id) => [...document.querySelectorAll('#' + id + ' .profile-tag.selected')].map(t => t.textContent);
+  const getVal = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const profile = {
+    nickname,
+    gender: getVal('p-gender'), age: getVal('p-age'),
+    blood: getVal('p-blood'), sign: getVal('p-sign'),
+    height: getVal('p-height'), body: getVal('p-body'),
+    job: getVal('p-job'), oshi: getVal('p-oshi'),
+    hobbies: getTags('hobby-tags'),
+    personality: getTags('personality-tags'),
+    aitalk: getTags('aitalk-tags'),
+  };
+  localStorage.setItem(PROFILE_STORE, JSON.stringify(profile));
+  document.getElementById('profile-screen').classList.remove('active');
+  document.getElementById('thread-list-screen').classList.add('active');
+  updateNewThreadBtn();
+  if (threads.length === 0) {
+    const showStartToast = () => {
+      if (
+        !document.getElementById('mode-screen').classList.contains('active') &&
+        !document.getElementById('profile-screen').classList.contains('active') &&
+        !document.getElementById('app').classList.contains('active')
+      ) {
+        showToast('右上の ＋ から会話を始めましょう', 3000);
+      }
+    };
+    setTimeout(showStartToast, 2000);
+    setTimeout(() => {
+      const startInterval = setInterval(() => {
+        if (threads.length > 0) { clearInterval(startInterval); return; }
+        showStartToast();
+      }, 6000);
+    }, 2000);
+  } else {
+    showToast('プロフィールを保存しました');
+  }
+}
+
+function skipProfile() {
+  document.getElementById('profile-screen').classList.remove('active');
+  document.getElementById('thread-list-screen').classList.add('active');
+  // プロフィール未設定トーストを再スタート
+  const showProfileToast = () => {
+    const p = loadProfile();
+    if (!p || !p.nickname || p.skipped) {
+      if (
+        !document.getElementById('profile-screen').classList.contains('active') &&
+        !document.getElementById('mode-screen').classList.contains('active') &&
+        !document.getElementById('app').classList.contains('active')
+      ) {
+        showToast('👤 ボタンを押してニックネームを設定', 3000);
+      }
+    }
+  };
+  setTimeout(showProfileToast, 5000);
+  setTimeout(() => setInterval(showProfileToast, 6000), 5000);
+}
+
+function profileNextPage(page) {}
+
+function toggleTag(el) { el.classList.toggle('selected'); }
+
+function buildProfilePrompt(profile) {
+  if (!profile || !profile.nickname) return '';
+  const p = profile;
+  const parts = ['ユーザー情報：ニックネームは「' + p.nickname + '」'];
+  if (p.gender) parts.push('性別：' + p.gender);
+  if (p.age) parts.push('年齢：' + p.age);
+  if (p.blood) parts.push('血液型：' + p.blood);
+  if (p.sign) parts.push('星座：' + p.sign);
+  if (p.height) parts.push('身長：' + p.height);
+  if (p.body) parts.push('体型：' + p.body);
+  if (p.job) parts.push('職業：' + p.job);
+  if (p.oshi) parts.push('推し：' + p.oshi);
+  if (p.hobbies && p.hobbies.length) parts.push('趣味：' + p.hobbies.join('・'));
+  if (p.personality && p.personality.length) parts.push('性格：' + p.personality.join('・'));
+  if (p.aitalk && p.aitalk.length) parts.push('AIとしたい話：' + p.aitalk.join('・'));
+  return parts.join('、') + '。この情報を踏まえて自然に会話してください。';
+}
+
+function showProfileEdit() {
+  const profile = loadProfile();
+  if (profile) {
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('p-nickname', profile.nickname);
+    setVal('p-gender', profile.gender);
+    setVal('p-age', profile.age);
+    setVal('p-blood', profile.blood);
+    setVal('p-sign', profile.sign);
+    setVal('p-height', profile.height);
+    setVal('p-body', profile.body);
+    setVal('p-job', profile.job);
+    setVal('p-oshi', profile.oshi);
+    const restoreTags = (id, values) => {
+      document.querySelectorAll('#' + id + ' .profile-tag').forEach(tag => {
+        tag.classList.toggle('selected', (values || []).includes(tag.textContent));
+      });
+    };
+    restoreTags('hobby-tags', profile.hobbies);
+    restoreTags('personality-tags', profile.personality);
+    restoreTags('aitalk-tags', profile.aitalk);
+  }
+  document.getElementById('thread-list-screen').classList.remove('active');
+  document.getElementById('profile-screen').classList.add('active');
+}
+
+function closeProfileEdit() {
+  document.getElementById('profile-screen').classList.remove('active');
+  document.getElementById('thread-list-screen').classList.add('active');
+}
+
+function initMain() {
+  threads = loadThreads();
+  updateApiBanner();
+  updatePlanBadge();
+  renderThreadList();
+  updateNewThreadBtn();
+  document.getElementById('thread-list-screen').classList.add('active');
+}
+function renderThreadList() {
+  const container = document.getElementById('thread-list');
+  const plan = getPlan();
+  const limit = PLAN_LIMITS[plan];
+
+  // Update limit bar
+  const pct = Math.min((threads.length / limit) * 100, 100);
+  const limitFill = document.getElementById('limit-fill');
+  const countLabel = document.getElementById('thread-count-label');
+  const planLabel = document.getElementById('plan-limit-label');
+  if (limitFill) limitFill.style.width = pct + '%';
+  if (countLabel) countLabel.textContent = threads.length + ' / ' + limit;
+  if (planLabel) planLabel.textContent = plan === 'standard' ? 'STANDARDプラン' : 'FREEプラン';
+
+  if (threads.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">🧵</div>
+        <div class="empty-state-text">まだ会話がありません<br>右上の ＋ から始めましょう</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  const sorted = [...threads].sort((a,b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  sorted.forEach(thread => {
+    const cfg = MODE_CONFIG[thread.mode] || MODE_CONFIG.friend;
+    const lastMsg = thread.messages.slice(-1)[0];
+    const preview = lastMsg ? lastMsg.content.slice(0, 35) + (lastMsg.content.length > 35 ? '…' : '') : '会話を始めましょう';
+    const dateLabel = formatDate(thread.updatedAt);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'thread-swipe-wrap';
+
+    const deleteBg = document.createElement('div');
+    deleteBg.className = 'thread-delete-bg';
+    deleteBg.style.cssText = 'display:flex;flex-direction:row;gap:2px;width:130px;padding:0;';
+    deleteBg.innerHTML = `
+      <div id="dl-${thread.id}" style="flex:1;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;background:#2a4a3a;">📥</div>
+      <div id="del-${thread.id}" style="flex:1;display:flex;align-items:center;justify-content:center;font-size:1.3rem;cursor:pointer;background:#5a3a2a;">🗑</div>`;
+
+    const inner = document.createElement('div');
+    inner.className = 'thread-swipe-inner';
+    inner.innerHTML = `
+      <div class="thread-avatar ${cfg.avatarClass}">${cfg.emoji}</div>
+      <div class="thread-body">
+        <div class="thread-name">${escHtml(thread.name)}</div>
+        <div class="thread-preview">${escHtml(preview)}</div>
+      </div>
+      <div class="thread-meta">
+        <div class="thread-date">${dateLabel}</div>
+        <div style="display:flex;gap:0.3rem;align-items:center;justify-content:flex-end;">
+          <div class="thread-mode-tag">${cfg.label}</div>
+          <div style="font-size:0.6rem;background:var(--ink);color:var(--gold);border-radius:4px;padding:0.15rem 0.4rem;font-weight:700;">${(thread.ai || 'claude').toUpperCase()}</div>
+        </div>
+      </div>`;
+
+    let isDeleting = false;
+    let didSwipe = false;
+
+    inner.addEventListener('click', (e) => {
+      if (isDeleting || didSwipe) return;
+      openThread(thread.id);
+    });
+
+    // Swipe to delete
+    let startX = 0, currentX = 0, swiping = false;
+    inner.addEventListener('touchstart', e => {
+      // 他の開いてるスワイプを全て閉じる
+      document.querySelectorAll('.thread-swipe-inner').forEach(el => {
+        if (el !== inner) {
+          el.style.transition = 'transform 0.2s ease';
+          el.style.transform = 'translateX(0)';
+        }
+      });
+      document.querySelectorAll('.thread-delete-bg').forEach(el => {
+        if (el !== deleteBg) {
+          el.style.transition = 'transform 0.2s ease';
+          el.style.transform = 'translateX(100%)';
+        }
+      });
+      startX = e.touches[0].clientX;
+      currentX = 0;
+      swiping = true;
+      didSwipe = false;
+      inner.style.transition = 'none';
+      deleteBg.style.transition = 'none';
+    }, { passive: true });
+
+    inner.addEventListener('touchmove', e => {
+      if (!swiping) return;
+      currentX = e.touches[0].clientX - startX;
+      if (currentX < 0) {
+        didSwipe = true;
+        const move = Math.max(currentX, -130);
+        inner.style.transform = `translateX(${move}px)`;
+        deleteBg.style.transform = `translateX(${100 + (move / 130 * 100)}%)`;
+      }
+    }, { passive: true });
+
+    inner.addEventListener('touchend', () => {
+      if (!swiping) return;
+      swiping = false;
+      inner.style.transition = 'transform 0.2s ease';
+      deleteBg.style.transition = 'transform 0.2s ease';
+
+      if (currentX < -80) {
+        isDeleting = true;
+        didSwipe = true;
+        inner.style.transform = 'translateX(-130px)';
+        deleteBg.style.transform = 'translateX(0%)';
+
+        const doDelete = () => {
+          askDeleteThread(null, thread.id, thread.name);
+        };
+
+        const doDownload = () => {
+          const cfg2 = MODE_CONFIG[thread.mode] || MODE_CONFIG.friend;
+          const lines = [`【${thread.name}】`, `モード：${cfg2.label}`, `作成日：${thread.createdAt?.slice(0,10) || ''}`, ''];
+          thread.messages.forEach(m => {
+            const who = m.role === 'user' ? 'あなた' : (m.content.startsWith('[よもぎ]') ? 'よもぎ' : cfg2.label.replace('モード',''));
+            const content = m.content.replace(/^\[.+?\] /, '');
+            lines.push(`[${m.time || ''}] ${who}：${content}`);
+          });
+          const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `${thread.name}.txt`;
+          a.click();
+        };
+
+        document.getElementById(`del-${thread.id}`).ontouchend = (e) => { e.preventDefault(); e.stopPropagation(); doDelete(); };
+        document.getElementById(`del-${thread.id}`).onclick = (e) => { e.stopPropagation(); };
+        document.getElementById(`dl-${thread.id}`).ontouchend = (e) => { e.preventDefault(); e.stopPropagation(); doDownload(); };
+        document.getElementById(`dl-${thread.id}`).onclick = (e) => { e.stopPropagation(); };
+
+        // 外側タップで閉じる
+        setTimeout(() => {
+          document.addEventListener('touchstart', (e) => {
+            if (!deleteBg.contains(e.target)) {
+              isDeleting = false;
+              didSwipe = false;
+              inner.style.transition = 'transform 0.2s ease';
+              inner.style.transform = 'translateX(0)';
+              deleteBg.style.transition = 'transform 0.2s ease';
+              deleteBg.style.transform = 'translateX(100%)';
+            }
+          }, { once: true, passive: true });
+        }, 200);
+      } else {
+        isDeleting = false;
+        didSwipe = false;
+        inner.style.transform = 'translateX(0)';
+        deleteBg.style.transform = 'translateX(100%)';
+      }
+      currentX = 0;
+    });
+
+    wrap.appendChild(deleteBg);
+    wrap.appendChild(inner);
+    container.appendChild(wrap);
+  });
+}
+
+function openThread(id) {
+  const thread = threads.find(t => t.id === id);
+  if (!thread) return;
+  currentThread = thread;
+  showApp();
+}
+
+function editThreadName() {
+  if (!currentThread) return;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:600;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:var(--paper);border-radius:12px;padding:1.5rem;width:85%;max-width:360px;">
+      <div style="font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;margin-bottom:1rem;color:var(--ink);">会話の名前を変更</div>
+      <input id="edit-name-input" type="text" value="${escHtml(currentThread.name)}" style="width:100%;border:1.5px solid var(--gold);border-radius:8px;padding:0.6rem;font-size:0.9rem;font-family:'M PLUS Rounded 1c',sans-serif;outline:none;box-sizing:border-box;">
+      <div style="display:flex;gap:0.8rem;margin-top:1rem;justify-content:flex-end;">
+        <button onclick="this.closest('div[style]').parentElement.remove()" style="padding:0.5rem 1rem;border-radius:20px;border:none;background:var(--paper2);color:var(--muted);font-size:0.82rem;cursor:pointer;">キャンセル</button>
+        <button onclick="saveThreadNameEdit()" style="padding:0.5rem 1rem;border-radius:20px;border:none;background:var(--ink);color:var(--gold);font-size:0.82rem;font-weight:700;cursor:pointer;">保存</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('edit-name-input').focus(), 100);
+}
+
+function saveThreadNameEdit() {
+  const input = document.getElementById('edit-name-input');
+  if (!input) return;
+  const newName = input.value.trim();
+  if (!newName) return;
+  currentThread.name = newName;
+  const idx = threads.findIndex(t => t.id === currentThread.id);
+  if (idx !== -1) threads[idx].name = newName;
+  saveThreads();
+  document.getElementById('header-thread-name').textContent = newName;
+  input.closest('div[style]').parentElement.remove();
+  showToast('名前を変更しました');
+}
+
+function backToList() {
+  if (silenceTimer) clearTimeout(silenceTimer);
+  currentThread = null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('thread-list-screen').classList.add('active');
+  renderThreadList();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ MODE SELECT
+function showModeSelect() {
+  yomogiEnabled = false;
+  yomogiFreq = 'low';
+  setYomogi(false);
+  setYomogiFreq('low');
+  const plan = getPlan();
+  const limits = PLAN_LIMITS[plan];
+  const allowedModes = PLAN_MODES[plan];
+
+  // FREEプランはよもぎ選択を無効化
+  const yomogiSection = document.querySelector('#mode-screen .yomogi-section') || document.getElementById('yomogi-on')?.closest('div[style*="background:var(--paper)"]');
+  const isFree = plan === 'free';
+  const yomogiOnBtn = document.getElementById('yomogi-on');
+  if (yomogiOnBtn) {
+    yomogiOnBtn.style.opacity = isFree ? '0.35' : '1';
+    yomogiOnBtn.style.cursor = isFree ? 'default' : 'pointer';
+    yomogiOnBtn.onclick = isFree 
+      ? () => showToast('STANDARDプラン以上の機能です', 2500)
+      : () => setYomogi(true);
+  }
+
+  // FREE・STANDARDはGPT・Geminiボタンを無効化
+  const isPremium = plan === 'premium';
+  ['gpt', 'gemini'].forEach(ai => {
+    const btn = document.getElementById('ai-' + ai);
+    if (btn) {
+      btn.style.opacity = isPremium ? '1' : '0.35';
+      btn.style.cursor = isPremium ? 'pointer' : 'default';
+      btn.onclick = isPremium ? () => selectAI(ai) : () => showToast('PREMIUMプランで利用できます', 2500);
+    }
+  });
+
+  // 全モードが上限に達してるか確認
+  const allFull = allowedModes.every(m => {
+    const count = threads.filter(t => t.mode === m).length;
+    return count >= limits[m];
+  });
+
+  if (allFull) {
+    showToast('スレッド上限です\nプランをアップグレードしてください', 2500);
+    showPlanModal();
+    return;
+  }
+
+  selectedMode = null;
+  document.getElementById('thread-name-input').value = '';
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('start-btn').classList.remove('ready');
+
+  // モードごとの上限チェック
+  ['friend','business','chara'].forEach(m => {
+    const card = document.getElementById('mode-' + m);
+    const count = threads.filter(t => t.mode === m).length;
+    const modeLimit = limits[m] || 0;
+    if (allowedModes.includes(m) && count < modeLimit) {
+      card.style.opacity = '1';
+      card.style.pointerEvents = 'all';
+      card.style.cursor = 'pointer';
+      card.onclick = () => selectMode(m);
+      card.title = '';
+    } else if (!allowedModes.includes(m)) {
+      card.style.opacity = '0.4';
+      card.style.pointerEvents = 'all';
+      card.style.cursor = 'pointer';
+      card.onclick = () => showToast('STANDARDプラン以上の機能です', 2500);
+    } else {
+      card.style.opacity = '0.4';
+      card.style.pointerEvents = 'none';
+      card.style.cursor = 'default';
+      card.onclick = null;
+    }
+  });
+
+  document.getElementById('mode-screen').classList.add('active');
+}
+
+function hideModeSelect() {
+  document.getElementById('mode-screen').classList.remove('active');
+}
+
+function selectAI(ai) {
+  const plan = getPlan();
+  if (ai !== 'claude' && plan !== 'premium') {
+    showToast('PREMIUMプランで利用できます', 2500);
+    return;
+  }
+  selectedAI = ai;
+  ['claude','gpt','gemini'].forEach(a => {
+    const el = document.getElementById('ai-' + a);
+    if (!el) return;
+    if (a === ai) {
+      el.style.background = 'var(--ink)';
+      el.style.color = 'var(--gold)';
+      el.style.borderColor = 'var(--gold)';
+    } else {
+      el.style.background = 'var(--paper2)';
+      el.style.color = 'var(--muted)';
+      el.style.borderColor = 'var(--paper2)';
+    }
+  });
+}
+
+let yomogiEnabled = false;
+let yomogiFreq = 'low';
+
+function setYomogi(val) {
+  yomogiEnabled = val;
+  document.getElementById('yomogi-on').style.background = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('yomogi-on').style.color = val ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('yomogi-on').style.borderColor = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('yomogi-off').style.background = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('yomogi-off').style.color = val ? 'var(--muted)' : 'var(--gold)';
+  document.getElementById('yomogi-off').style.borderColor = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('yomogi-freq-row').style.display = val ? 'flex' : 'none';
+}
+
+function setYomogiFreq(freq) {
+  yomogiFreq = freq;
+  ['low','mid','hi'].forEach(f => {
+    const btn = document.getElementById('freq-' + f);
+    const active = f === freq;
+    btn.style.background = active ? 'var(--gold)' : 'var(--paper2)';
+    btn.style.color = active ? 'var(--ink)' : 'var(--muted)';
+    btn.style.borderColor = active ? 'var(--gold)' : 'var(--paper2)';
+    btn.style.fontWeight = active ? '700' : '400';
+  });
+}
+
+function selectMode(mode) {
+  const plan = getPlan();
+  if (!PLAN_MODES[plan].includes(mode)) {
+    showToast('STANDARDプラン以上の機能です', 2500);
+    return;
+  }
+  selectedMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('mode-' + mode).classList.add('selected');
+  checkModeReady();
+}
+
+function checkModeReady() {
+  const name = document.getElementById('thread-name-input').value.trim();
+  const btn = document.getElementById('start-btn');
+  if (selectedMode && name.length > 0) btn.classList.add('ready');
+  else btn.classList.remove('ready');
+}
+
+function createThread() {
+  if (!selectedMode) return;
+  const name = document.getElementById('thread-name-input').value.trim();
+  if (!name) return;
+
+  const plan = getPlan();
+  const limits = PLAN_LIMITS[plan];
+  const modeCount = threads.filter(t => t.mode === selectedMode).length;
+  if (modeCount >= limits[selectedMode]) {
+    showToast('このモードは上限に達しています');
+    return;
+  }
+
+  const thread = {
+    id: 'thread_' + Date.now(),
+    name,
+    mode: selectedMode,
+    ai: selectedAI || 'claude',
+    yomogi: yomogiEnabled,
+    yomogiFreq: yomogiFreq,
+    messages: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  threads.push(thread);
+  saveThreads();
+  currentThread = thread;
+
+  document.getElementById('mode-screen').classList.remove('active');
+  showApp(true);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ APP
+function showApp(isNew = false) {
+  document.getElementById('thread-list-screen').classList.remove('active');
+  document.getElementById('app').classList.add('active');
+
+  const cfg = MODE_CONFIG[currentThread.mode] || MODE_CONFIG.friend;
+  document.getElementById('header-thread-name').textContent = currentThread.name;
+  document.getElementById('mode-badge').textContent = cfg.emoji + ' ' + cfg.label;
+
+  const threadBar = document.getElementById('thread-bar');
+  if (!isNew && currentThread.messages.length > 0) {
+    threadBar.classList.add('show');
+  } else {
+    threadBar.classList.remove('show');
+  }
+
+  renderMessages();
+  showOtherAIBar();
+  setupMicBtn();
+  setupSpeakBtn();
+
+  // マイク・スピーカーをOFFでスタート
+  micActive = false;
+  speakEnabled = false;
+  const micBtn = document.getElementById('mic-btn');
+  const speakBtn = document.getElementById('speak-btn');
+  if (micBtn) { micBtn.style.opacity = '0.4'; micBtn.style.filter = 'grayscale(1)'; }
+  if (speakBtn) { speakBtn.style.opacity = '0.4'; speakBtn.style.filter = 'grayscale(1)'; }
+
+  if (isNew) {
+    aiGreetWithProfile(currentThread.mode);
+  }
+  resetSilenceTimer();
+}
+
+async function aiGreetWithProfile(mode) {
+  const profile = loadProfile();
+  const cfg = MODE_CONFIG[mode] || MODE_CONFIG.friend;
+
+  if (!profile || !profile.nickname) {
+    // プロフィールなし：デフォルト挨拶
+    const greets = {
+      friend: 'やあ、ハルです。友達として話しかけてくれていいよ。\n\nちなみに名前や性別、変えたかったら言って。',
+      business: 'お疲れ様です。レンと申します。ビジネスのサポートを担当します。\n\n名前や担当スタイルを変えたい場合はお申し付けください。',
+      chara: 'こんにちは！お好みモードへようこそ🎭\n\nどんなキャラクターでも自由に設定できます。\n友達・恋人・憧れの人・推し・先生…なんでもOK。\n\n名前・性格・関係性を教えてもらえれば、そのキャラとして話します。どんなキャラにしますか？'
+    };
+    addAIMessage(greets[mode]);
+    return;
+  }
+
+  // プロフィールあり：APIで個人化挨拶を生成
+  const profileText = buildProfilePrompt(profile);
+  const callname = profile.callname ? profile.nickname + profile.callname : profile.nickname;
+
+  const systemPrompt = cfg.system + '\n\n' + profileText;
+  const userPrompt = mode === 'chara'
+    ? `あなたは今、${callname}さんと初めて話します。お好みモードへの挨拶として、友達・恋人・憧れの人・推しなど どんなキャラクターにもなれることを伝えつつ、どんなキャラにするか聞いてください。明るく短く。`
+    : `あなたは今、${callname}さんと初めて話します。プロフィール情報を踏まえて、${callname}さんの趣味・推し・性格などに触れながら、自然で親しみやすい最初の一言を送ってください。長すぎず、でも個人的な温かみのある挨拶にしてください。`;
+
+  showTyping();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    const reply = (data.content?.find(b=>b.type==='text')?.text || data.content?.[0]?.text) || 'よろしく！';
+    // 挨拶はカウントから除外するため[挨拶]タグで保存
+    appendBubble('assistant', reply, now());
+    currentThread.messages.push({ role: 'assistant', content: '[挨拶] ' + reply, time: now(), date: dateStr() });
+    currentThread.updatedAt = new Date().toISOString();
+    saveThreads();
+    scrollBottom();
+  } catch(e) {
+    removeTyping();
+    const greets = {
+      friend: `やあ、${callname}！ハルだよ。気軽に話しかけてね。`,
+      business: `お疲れ様です、${callname}さん。レンです。`,
+      chara: 'こんにちは！お好みモードへようこそ🎭\n\n友達・恋人・憧れの人・推し、どんなキャラクターにもなれます。\n名前・性格・関係性を教えてもらえればそのキャラとして話します。どんなキャラにしますか？'
+    };
+    const g = greets[mode];
+    appendBubble('assistant', g, now());
+    currentThread.messages.push({ role: 'assistant', content: '[挨拶] ' + g, time: now(), date: dateStr() });
+    currentThread.updatedAt = new Date().toISOString();
+    saveThreads();
+    scrollBottom();
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ MESSAGES
+function renderMessages() {
+  const container = document.getElementById('messages');
+  container.innerHTML = '';
+  let lastDate = '';
+  (currentThread.messages || []).forEach((m, i) => {
+    if (m.date && m.date !== lastDate) {
+      const div = document.createElement('div');
+      div.className = 'day-divider';
+      div.innerHTML = `<span>${m.date}</span>`;
+      container.appendChild(div);
+      lastDate = m.date;
+    }
+    appendBubble(m.role, m.content, m.time, false, i);
+  });
+  scrollBottom();
+}
+
+function appendBubble(role, content, time, animate = true, msgIndex = -1) {
+  const container = document.getElementById('messages');
+  const cfg = MODE_CONFIG[currentThread?.mode] || MODE_CONFIG.friend;
+  const isYomogi = role === 'assistant' && content.startsWith('[よもぎ]');
+  const isSystem = role === 'assistant' && (content.startsWith('[挨拶]') || content.startsWith('[紹介]'));
+  const displayContent = isYomogi ? content.replace(/^\[よもぎ\] /, '') 
+                        : isSystem ? content.replace(/^\[挨拶\] |^\[紹介\] /, '')
+                        : content;
+
+  const outer = document.createElement('div');
+  outer.className = `msg ${role === 'user' ? 'user' : 'ai'}`;
+  if (!animate) outer.style.animation = 'none';
+  if (role === 'user') outer.style.flexDirection = 'row-reverse';
+
+  const avatarDiv = document.createElement('div');
+  if (isYomogi) {
+    avatarDiv.className = 'avatar yomogi';
+    avatarDiv.textContent = '🌿';
+  } else {
+    avatarDiv.className = `avatar ${role === 'user' ? 'user-av' : 'ai'}`;
+    avatarDiv.textContent = role === 'user' ? (loadProfile()?.nickname?.[0] || 'あ') : cfg.emoji;
+  }
+
+  const bubbleWrap = document.createElement('div');
+  bubbleWrap.className = 'bubble-wrap';
+  if (role === 'user') bubbleWrap.style.alignItems = 'flex-end';
+
+  // よもぎのラベル
+  if (isYomogi) {
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:0.6rem;color:#7dba84;font-weight:700;margin-bottom:2px;';
+    label.textContent = 'よもぎ';
+    bubbleWrap.appendChild(label);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  if (isYomogi) bubble.style.background = '#e8f5e9';
+  bubble.innerHTML = escHtml(displayContent).replace(/\n/g,'<br>');
+
+  const msgTime = document.createElement('div');
+  msgTime.className = 'msg-time';
+  msgTime.textContent = time || now();
+
+  bubbleWrap.appendChild(bubble);
+  bubbleWrap.appendChild(msgTime);
+  outer.appendChild(avatarDiv);
+  outer.appendChild(bubbleWrap);
+  container.appendChild(outer);
+
+  // 長押しで削除ボタン表示
+  if (msgIndex >= 0) {
+    let pressTimer = null;
+
+    const showDeleteBtn = () => {
+      // 既存の削除ボタンを全部消す
+      document.querySelectorAll('.msg-delete-btn').forEach(b => b.remove());
+
+      const btn = document.createElement('button');
+      btn.className = 'msg-delete-btn';
+      btn.textContent = '🗑 削除';
+      btn.style.cssText = `
+        position:absolute; z-index:100;
+        background:#5a3a2a; color:white;
+        border:none; border-radius:8px;
+        padding:8px 16px; font-size:14px;
+        cursor:pointer; white-space:nowrap;
+        font-family:'Noto Sans JP',sans-serif;
+        box-shadow:0 2px 8px rgba(0,0,0,0.3);
+      `;
+
+      // バブルの位置に合わせて配置
+      const rect = bubble.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      btn.style.top = (rect.top - containerRect.top + container.scrollTop - 40) + 'px';
+      btn.style.left = role === 'user'
+        ? Math.max(rect.left - containerRect.left - 20, 0) + 'px'
+        : (rect.left - containerRect.left) + 'px';
+
+      container.style.position = 'relative';
+      container.appendChild(btn);
+
+      btn.addEventListener('click', () => {
+        currentThread.messages.splice(msgIndex, 1);
+        currentThread.updatedAt = new Date().toISOString();
+        saveThreads();
+        renderMessages();
+      });
+
+      // 他の場所タップで消える
+      setTimeout(() => {
+        document.addEventListener('touchstart', () => btn.remove(), { once: true, passive: true });
+        document.addEventListener('click', () => btn.remove(), { once: true });
+      }, 100);
+    };
+
+    bubble.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(showDeleteBtn, 600);
+    }, { passive: true });
+    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+    bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    bubble.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      showDeleteBtn();
+    });
+  }
+
+  if (animate) scrollBottom();
+}
+
+function addAIMessage(content) {
+  const t = now(), d = dateStr();
+  currentThread.messages.push({ role: 'assistant', content, time: t, date: d });
+  currentThread.updatedAt = new Date().toISOString();
+  appendBubble('assistant', content, t);
+  saveThreads();
+}
+
+function showTyping() {
+  const container = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ai typing';
+  div.id = 'typing-indicator';
+  const cfg = MODE_CONFIG[currentThread?.mode] || MODE_CONFIG.friend;
+  div.innerHTML = `<div class="avatar ai">${cfg.emoji}</div><div class="bubble-wrap"><div class="bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>`;
+  container.appendChild(div);
+  scrollBottom();
+}
+function removeTyping() { const t = document.getElementById('typing-indicator'); if (t) t.remove(); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━ DAILY LIMIT
+const DAILY_COUNT_STORE = 'tsumugi_daily';
+
+function getLocalDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getDailyCount() {
+  try {
+    const today = getLocalDate();
+    const r = JSON.parse(localStorage.getItem(DAILY_COUNT_STORE) || '{}');
+    if (r.date !== today) return 0;
+    return r.count || 0;
+  } catch { return 0; }
+}
+
+function incrementDailyCount() {
+  const today = getLocalDate();
+  const count = getDailyCount() + 1;
+  localStorage.setItem(DAILY_COUNT_STORE, JSON.stringify({ date: today, count }));
+}
+
+function checkDailyLimit() {
+  const plan = getPlan();
+  const limit = DAILY_LIMITS[plan];
+  const count = getDailyCount();
+  if (count >= limit) {
+    const labels = { 
+      free: `FREEプランは1日${limit}回まで。STANDARDにアップグレードを！`, 
+      standard: `STANDARDプランは1日${limit}回まで。PREMIUMにアップグレードを！`,
+      premium: '' 
+    };
+    showToast(labels[plan] || '1日の上限に達しました');
+    showPlanModal();
+    return false;
+  }
+  return true;
+}
+
+function showThreadSettings() {
+  if (!currentThread) return;
+  const y = currentThread.yomogi || false;
+  const f = currentThread.yomogiFreq || 'low';
+  setThreadYomogi(y);
+  setThreadFreq(f);
+  setThreadMic(currentThread.micEnabled || false);
+  setThreadSpeak(currentThread.speakEnabled || false);
+  micActive = currentThread.micEnabled || false;
+
+  // FREEプランは「する」を制限
+  const isFree = getPlan() === 'free';
+  const btn = document.getElementById('ts-yomogi-on');
+  if (btn) {
+    btn.style.opacity = isFree ? '0.35' : '1';
+    btn.style.cursor = isFree ? 'default' : 'pointer';
+    btn.onclick = isFree
+      ? () => showToast('STANDARDプラン以上の機能です', 2500)
+      : () => setThreadYomogi(true);
+  }
+
+  document.getElementById('thread-settings-modal').classList.add('active');
+}
+
+function closeThreadSettings() {
+  document.getElementById('thread-settings-modal').classList.remove('active');
+}
+
+let tsYomogiVal = false;
+let tsFreqVal = 'low';
+let tsMicVal = false;
+let tsSpeakVal = false;
+
+function setThreadYomogi(val) {
+  tsYomogiVal = val;
+  document.getElementById('ts-yomogi-on').style.background = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-yomogi-on').style.color = val ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('ts-yomogi-on').style.borderColor = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-yomogi-off').style.background = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('ts-yomogi-off').style.color = val ? 'var(--muted)' : 'var(--gold)';
+  document.getElementById('ts-yomogi-off').style.borderColor = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('ts-freq-row').style.display = val ? 'block' : 'none';
+}
+
+function setThreadMic(val) {
+  document.getElementById('ts-mic-on').style.background = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-mic-on').style.color = val ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('ts-mic-on').style.borderColor = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-mic-off').style.background = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('ts-mic-off').style.color = val ? 'var(--muted)' : 'var(--gold)';
+  document.getElementById('ts-mic-off').style.borderColor = val ? 'var(--paper2)' : 'var(--ink)';
+  tsMicVal = val;
+}
+
+function setThreadSpeak(val) {
+  document.getElementById('ts-speak-on').style.background = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-speak-on').style.color = val ? 'var(--gold)' : 'var(--muted)';
+  document.getElementById('ts-speak-on').style.borderColor = val ? 'var(--ink)' : 'var(--paper2)';
+  document.getElementById('ts-speak-off').style.background = val ? 'var(--paper2)' : 'var(--ink)';
+  document.getElementById('ts-speak-off').style.color = val ? 'var(--muted)' : 'var(--gold)';
+  document.getElementById('ts-speak-off').style.borderColor = val ? 'var(--paper2)' : 'var(--ink)';
+  tsSpeakVal = val;
+}
+
+function setThreadFreq(freq) {
+  tsFreqVal = freq;
+  ['low','mid','hi'].forEach(f => {
+    const btn = document.getElementById('ts-freq-' + f);
+    const active = f === freq;
+    btn.style.background = active ? 'var(--gold)' : 'var(--paper2)';
+    btn.style.color = active ? 'var(--ink)' : 'var(--muted)';
+    btn.style.borderColor = active ? 'var(--gold)' : 'var(--paper2)';
+    btn.style.fontWeight = active ? '700' : '400';
+  });
+}
+
+function saveThreadSettings() {
+  if (!currentThread) return;
+  const idx = threads.findIndex(t => t.id === currentThread.id);
+  if (idx !== -1) {
+    threads[idx].yomogi = tsYomogiVal;
+    threads[idx].yomogiFreq = tsFreqVal;
+    threads[idx].micEnabled = tsMicVal;
+    threads[idx].speakEnabled = tsSpeakVal;
+    currentThread = threads[idx];
+  }
+  saveThreads();
+  // マイク・スピーカーボタンの表示更新
+  const micBtn = document.getElementById('mic-btn');
+  const speakBtn = document.getElementById('speak-btn');
+  if (micBtn) {
+    micBtn.style.opacity = tsMicVal ? '1' : '0.4';
+    micBtn.style.filter = tsMicVal ? 'none' : 'grayscale(1)';
+    micBtn.style.cursor = 'pointer';
+  }
+  if (speakBtn) {
+    speakBtn.style.opacity = tsSpeakVal ? '1' : '0.4';
+    speakBtn.style.filter = tsSpeakVal ? 'none' : 'grayscale(1)';
+    speakBtn.style.cursor = 'pointer';
+  }
+  speakEnabled = tsSpeakVal;
+  closeThreadSettings();
+  showToast('設定を保存しました');
+}
+
+function devResetProfile() {
+  localStorage.removeItem(PROFILE_STORE);
+  updateNewThreadBtn();
+  showToast('[DEV] プロフィールをリセットしました');
+  // トースト催促を再スタート
+  const showProfileToast = () => {
+    const p = loadProfile();
+    if (!p || !p.nickname || p.skipped) {
+      if (
+        !document.getElementById('profile-screen').classList.contains('active') &&
+        !document.getElementById('mode-screen').classList.contains('active') &&
+        !document.getElementById('app').classList.contains('active')
+      ) {
+        showToast('👤 ボタンを押してニックネームを設定', 3000);
+      }
+    }
+  };
+  setTimeout(showProfileToast, 5000);
+  setTimeout(() => setInterval(showProfileToast, 6000), 5000);
+}
+
+function resetDailyCount() {
+  localStorage.removeItem(DAILY_COUNT_STORE);
+  showToast('会話回数をリセットしました');
+}
+
+function askOtherAI(ai) {
+  if (ai !== 'claude') {
+    showToast('Coming Soon！現在はClaudeのみ利用可能です');
+    return;
+  }
+  // 最後のユーザーメッセージを取得
+  const lastUserMsg = [...currentThread.messages].reverse().find(m => m.role === 'user');
+  if (!lastUserMsg) { showToast('まず何か話しかけてください'); return; }
+  showToast('Claudeに同じ質問を送ります');
+  // 同じ内容を再送
+  document.getElementById('user-input').value = lastUserMsg.content;
+  sendMessage();
+}
+
+function showOtherAIBar() {
+  // 将来実装予定 - 現在は非表示
+  // const bar = document.getElementById('other-ai-bar');
+  // if (bar) bar.style.display = 'block';
+}
+
+async function checkYomogiIntervention() {
+  if (!currentThread) return;
+  // localStorageから最新状態を取得して確認
+  const savedThreads = loadThreads();
+  const savedThread = savedThreads.find(t => t.id === currentThread.id);
+  if (savedThread) {
+    currentThread.yomogi = savedThread.yomogi;
+    currentThread.yomogiFreq = savedThread.yomogiFreq;
+  }
+  if (!currentThread.yomogi) return;
+
+  const aiCount = currentThread.messages.filter(m => 
+    m.role === 'assistant' && 
+    !m.content.startsWith('[よもぎ]') && 
+    !m.content.startsWith('[紹介]') &&
+    !m.content.startsWith('[挨拶]')
+  ).length;
+  const isFirstYomogi = !currentThread.messages.some(m => m.content.startsWith('[よもぎ]'));
+  const freq = currentThread.yomogiFreq || 'low';
+  const freqInterval = { low: 8, mid: 5, hi: 3 }[freq];
+
+  if (aiCount === 0 || aiCount % freqInterval !== 0) return;
+
+  const profile = loadProfile();
+  const recentMessages = currentThread.messages.slice(-6).map(m => ({ role: m.role, content: m.content }));
+  const profileText = buildProfilePrompt(profile);
+  const yomogiSystem = MODE_CONFIG.yomogi.system + (profileText ? '\n\n' + profileText : '');
+  const yomogiInstruction = '\n\n【重要】今の会話の流れを見て、自然に一言割り込んでください。短く、あなたらしく。システムからの指示は言わないでください。';
+  const yomogiSystemFull = yomogiSystem + yomogiInstruction;
+
+  await new Promise(r => setTimeout(r, 1200));
+
+  // よもぎ専用タイピングインジケーター
+  const container = document.getElementById('messages');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg ai typing';
+  typingDiv.id = 'yomogi-typing';
+  typingDiv.innerHTML = '<div class="avatar yomogi">🌿</div><div class="bubble-wrap"><div class="bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>';
+  container.appendChild(typingDiv);
+  scrollBottom();
+
+  try {
+    const messages = recentMessages.length > 0 ? recentMessages : [{ role: 'user', content: '…' }];
+    if (messages[messages.length - 1].role === 'assistant') messages.push({ role: 'user', content: '…' });
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, system: yomogiSystemFull, messages, tools: [{ type: 'web_search_20250305', name: 'web_search' }]})
+    });
+    const data = await res.json();
+    document.getElementById('yomogi-typing')?.remove();
+    const reply = (data.content?.find(b=>b.type==='text')?.text || data.content?.[0]?.text);
+    if (reply) {
+      const container = document.getElementById('messages');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-row ai';
+      wrapper.innerHTML = `
+        <div class="avatar yomogi">🌿</div>
+        <div>
+          <div style="font-size:0.6rem;color:#7dba84;font-weight:700;margin-bottom:2px;">よもぎ</div>
+          <div class="bubble ai-bubble" style="background:#e8f5e9;">${escHtml(reply)}</div>
+          <div class="msg-time">${now()}</div>
+        </div>`;
+      container.appendChild(wrapper);
+      scrollBottom();
+      speakText(reply);
+      currentThread.messages.push({ role: 'assistant', content: '[よもぎ] ' + reply, time: now(), date: dateStr() });
+      saveThreads();
+
+      // 初登場ならハルが紹介（お好みモード以外）またはよもぎが自己紹介
+      if (isFirstYomogi) {
+        await new Promise(r => setTimeout(r, 1500));
+        if (currentThread.mode === 'chara') {
+          // お好みモード：よもぎが自己紹介
+          const selfIntroSystem = MODE_CONFIG.yomogi.system;
+          const selfIntroPrompt = 'はじめて会話に参加します。よもぎとして自然に短く自己紹介してください。';
+          showTyping();
+          try {
+            const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+              body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, system: selfIntroSystem, messages: [{ role: 'user', content: selfIntroPrompt }], tools: [{ type: 'web_search_20250305', name: 'web_search' }] })
+            });
+            const data2 = await res2.json();
+            removeTyping();
+            const intro = data2.content?.[0]?.text;
+            if (intro) {
+              const introWrapper = document.createElement('div');
+              introWrapper.className = 'msg-row ai';
+              introWrapper.innerHTML = `
+                <div class="avatar yomogi">🌿</div>
+                <div>
+                  <div style="font-size:0.6rem;color:#7dba84;font-weight:700;margin-bottom:2px;">よもぎ</div>
+                  <div class="bubble ai-bubble" style="background:#e8f5e9;">${escHtml(intro)}</div>
+                  <div class="msg-time">${now()}</div>
+                </div>`;
+              document.getElementById('messages').appendChild(introWrapper);
+              scrollBottom();
+            }
+          } catch(e) { removeTyping(); }
+        } else {
+          // 友達・ビジネスモード：ハルorレンが紹介
+          const cfg = MODE_CONFIG[currentThread.mode] || MODE_CONFIG.friend;
+          const introPrompt = currentThread.mode === 'business'
+            ? 'よもぎ（13歳）が会話に参加してきました。レンとして、昔から知ってる子が来た感じで、ちょっと困ったように、でも自然に一言紹介してください。妹とは言わずに。AIとも言わずに。短く。'
+            : 'よもぎ（13歳）が会話に参加してきました。ハルとして、昔からよく知ってる子が来た感じで、自然に嬉しそうに一言紹介してください。妹とは言わずに。AIとも言わずに。短く。';
+          showTyping();
+          try {
+            const res2 = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+              body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 80, system: cfg.system, messages: [{ role: 'user', content: introPrompt }], tools: [{ type: 'web_search_20250305', name: 'web_search' }] })
+            });
+            const data2 = await res2.json();
+            removeTyping();
+            const intro = data2.content?.[0]?.text;
+            if (intro) {
+              appendBubble('assistant', intro, now());
+              currentThread.messages.push({ role: 'assistant', content: '[紹介] ' + intro, time: now(), date: dateStr() });
+              currentThread.updatedAt = new Date().toISOString();
+              saveThreads();
+              scrollBottom();
+            }
+          } catch(e) { removeTyping(); }
+        }
+      }
+      // ハルのよもぎへの反応（一旦無効）
+      // if (!isFirstYomogi && Math.random() < 0.3) { ... }
+    }
+  } catch(e) {
+    document.getElementById('yomogi-typing')?.remove();
+    removeTyping();
+  } finally {
+    resetSilenceTimer();
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ VOICE
+let recognition = null;
+let isListening = false;
+let speakEnabled = false;
+let voiceTranscript = '';
+
+function setupMicBtn() {
+  const btn = document.getElementById('mic-btn');
+  if (!btn) return;
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+
+  let lastToggle = 0;
+  const handleMic = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const now2 = Date.now();
+    if (now2 - lastToggle < 300) return; // 300ms以内の二重発火を防ぐ
+    lastToggle = now2;
+    toggleVoiceInput();
+  };
+
+  newBtn.addEventListener('touchend', handleMic, { passive: false });
+  newBtn.addEventListener('click', handleMic);
+}
+
+function setupSpeakBtn() {
+  const btn = document.getElementById('speak-btn');
+  if (!btn) return;
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+
+  let lastToggle = 0;
+  const handleSpeak = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const now2 = Date.now();
+    if (now2 - lastToggle < 300) return;
+    lastToggle = now2;
+    toggleSpeak();
+  };
+
+  newBtn.addEventListener('touchend', handleSpeak, { passive: false });
+  newBtn.addEventListener('click', handleSpeak);
+}
+
+function startVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('音声入力はhttps環境が必要です');
+    return;
+  }
+  if (isListening) return;
+  micActive = true;
+  updateMicBtn();
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isListening = true;
+    micActive = true;
+    document.getElementById('mic-btn').textContent = '🔴';
+    document.getElementById('mic-btn').style.opacity = '1';
+    document.getElementById('mic-btn').style.filter = 'none';
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        final += e.results[i][0].transcript;
+      } else {
+        interim += e.results[i][0].transcript;
+      }
+    }
+    if (final) voiceTranscript += final;
+    const input = document.getElementById('user-input');
+    input.value = voiceTranscript + interim;
+    autoResize(input);
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micActive = false;
+    document.getElementById('mic-btn').textContent = '🎤';
+    updateMicBtn();
+  };
+
+  recognition.onerror = () => {
+    isListening = false;
+    micActive = false;
+    document.getElementById('mic-btn').textContent = '🎤';
+    updateMicBtn();
+  };
+
+  recognition.start();
+}
+
+function stopVoice() {
+  if (recognition && isListening) {
+    recognition.stop();
+  }
+}
+
+let micActive = false;
+
+function updateMicBtn() {
+  const btn = document.getElementById('mic-btn');
+  if (!btn) return;
+  btn.style.opacity = micActive ? '1' : '0.4';
+  btn.style.filter = micActive ? 'none' : 'grayscale(1)';
+}
+
+function toggleVoiceInput() {
+  if (micActive) {
+    stopVoice();
+  } else {
+    startVoice();
+  }
+}
+
+function toggleSpeak() {
+  speakEnabled = !speakEnabled;
+  const btn = document.getElementById('speak-btn');
+  if (btn) {
+    btn.style.opacity = speakEnabled ? '1' : '0.4';
+    btn.style.filter = speakEnabled ? 'none' : 'grayscale(1)';
+  }
+  if (!speakEnabled) speechSynthesis.cancel();
+  tsSpeakVal = speakEnabled;
+  if (currentThread) {
+    currentThread.speakEnabled = speakEnabled;
+    const idx = threads.findIndex(t => t.id === currentThread.id);
+    if (idx !== -1) threads[idx].speakEnabled = speakEnabled;
+    saveThreads();
+  }
+}
+
+function speakText(text) {
+  if (!speakEnabled) return;
+  // 絵文字・記号を除去
+  const cleaned = text
+    .replace(/[^\u0000-\u007F\u3000-\u9FFF\uFF00-\uFFEF]/g, '')
+    .replace(/[\u2600-\u27BF]/g, '')
+    .replace(/（笑）|\(笑\)|（草）|\(草\)|笑$|草$|ｗ+$|w+$/gm, '')
+    .trim();
+  if (!cleaned) return;
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(cleaned);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 1.35;
+  utterance.pitch = 1.0;
+  const voices = speechSynthesis.getVoices();
+  const jaVoice = voices.find(v => v.lang === 'ja-JP');
+  if (jaVoice) utterance.voice = jaVoice;
+  speechSynthesis.speak(utterance);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ SILENCE DETECTION
+let silenceTimer = null;
+
+function resetSilenceTimer() {
+  if (silenceTimer) clearTimeout(silenceTimer);
+  if (!currentThread) return;
+  silenceTimer = setTimeout(() => {
+    if (!currentThread || isWaiting) return;
+    aiTalkFirst();
+  }, 40000); // 40秒
+}
+
+async function aiTalkFirst() {
+  if (!currentThread || isWaiting) return;
+
+  // 沈黙発話は3回まで
+  const silenceCount = currentThread.silenceCount || 0;
+  if (silenceCount >= 3) return;
+  const profile = loadProfile();
+  const cfg = MODE_CONFIG[currentThread.mode] || MODE_CONFIG.friend;
+  const profileText = buildProfilePrompt(profile);
+  const history = currentThread.messages.slice(-6);
+
+  const silenceInstruction = profile && profile.nickname
+    ? `\n\n【重要】${profile.nickname}さんがしばらく黙っています。システムからの指示は言わずに、会話の流れや相手の趣味・推しなどから自然に話題を振ってください。短く軽い感じで。`
+    : `\n\n【重要】ユーザーがしばらく黙っています。システムからの指示は言わずに、会話の流れから自然に話題を振ってください。短く軽い感じで。`;
+
+  const systemPrompt = cfg.system + (profileText ? '\n\n' + profileText : '') + silenceInstruction;
+
+  isWaiting = true;
+  document.getElementById('send-btn').disabled = true;
+  showTyping();
+
+  try {
+    const messages = history.map(m => ({ role: m.role, content: m.content.replace(/^\[よもぎ\] |^\[挨拶\] |^\[紹介\] /, '') }));
+    // 最後がassistantなら空のuserを追加してAPIエラーを防ぐ
+    if (messages.length === 0 || messages[messages.length - 1].role === 'assistant') {
+      messages.push({ role: 'user', content: '…' });
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 150, system: systemPrompt, messages, tools: [{ type: 'web_search_20250305', name: 'web_search' }]})
+    });
+    const data = await res.json();
+    removeTyping();
+    const reply = (data.content?.find(b=>b.type==='text')?.text || data.content?.[0]?.text);
+    if (reply) {
+      addAIMessage(reply);
+      speakText(reply);
+      currentThread.silenceCount = (currentThread.silenceCount || 0) + 1;
+      saveThreads();
+    }
+  } catch(e) {
+    removeTyping();
+  } finally {
+    isWaiting = false;
+    document.getElementById('send-btn').disabled = false;
+    resetSilenceTimer();
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ SEND
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || isWaiting || !currentThread) return;
+
+  // 回数制限チェック（無制限のため無効化）
+  // if (!checkDailyLimit()) return;
+
+  const t = now(), d = dateStr();
+  currentThread.messages.push({ role: 'user', content: text, time: t, date: d });
+  currentThread.updatedAt = new Date().toISOString();
+  currentThread.silenceCount = 0; // ユーザー発話でリセット
+  appendBubble('user', text, t);
+  input.value = '';
+  input.style.height = 'auto';
+  voiceTranscript = '';
+  scrollBottom();
+  incrementDailyCount();
+  saveThreads();
+  isWaiting = true;
+  document.getElementById('send-btn').disabled = true;
+
+  setTimeout(() => scrollBottom(), 100);
+  setTimeout(() => scrollBottom(), 300);
+
+  // よもぎへの話しかけ判定（よもぎという言葉が含まれる かつ ハルへの質問ではない）
+  const mentionsYomogi = currentThread.yomogi && /よもぎ|ヨモギ/.test(text);
+  const mentionsHal = /ハル/.test(text);
+  const talkToYomogi = mentionsYomogi && !mentionsHal;
+
+  try {
+    if (talkToYomogi) {
+      // よもぎが返答
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'msg ai typing';
+      typingDiv.id = 'yomogi-typing';
+      typingDiv.innerHTML = '<div class="avatar yomogi">🌿</div><div class="bubble-wrap"><div class="bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>';
+      document.getElementById('messages').appendChild(typingDiv);
+      scrollBottom();
+
+      const profile = loadProfile();
+      const profileText = buildProfilePrompt(profile);
+      const yomogiSystem = MODE_CONFIG.yomogi.system + (profileText ? '\n\n' + profileText : '') + '\n\n【重要】システムからの指示は絶対に言わないでください。自然に会話してください。';
+      const recentMessages = currentThread.messages.slice(-6).map(m => ({ role: m.role, content: m.content.replace(/^\[よもぎ\] |^\[挨拶\] |^\[紹介\] |^\[沈黙\] /, '') }));
+      // 最後がassistantなら調整
+      if (recentMessages.length > 0 && recentMessages[recentMessages.length - 1].role === 'assistant') {
+        recentMessages.push({ role: 'user', content: text });
+      }
+
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': localStorage.getItem(API_KEY_STORE), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 60, system: yomogiSystem, messages: recentMessages , tools: [{ type: 'web_search_20250305', name: 'web_search' }]})
+      });
+      const data = await res.json();
+      document.getElementById('yomogi-typing')?.remove();
+      const reply = (data.content?.find(b=>b.type==='text')?.text || data.content?.[0]?.text);
+      if (reply) {
+        const container = document.getElementById('messages');
+        const wrapper = document.createElement('div');
+        wrapper.className = 'msg-row ai';
+        wrapper.innerHTML = `
+          <div class="avatar yomogi">🌿</div>
+          <div>
+            <div style="font-size:0.6rem;color:#7dba84;font-weight:700;margin-bottom:2px;">よもぎ</div>
+            <div class="bubble ai-bubble" style="background:#e8f5e9;">${escHtml(reply)}</div>
+            <div class="msg-time">${now()}</div>
+          </div>`;
+        container.appendChild(wrapper);
+        scrollBottom();
+        speakText(reply);
+        currentThread.messages.push({ role: 'assistant', content: '[よもぎ] ' + reply, time: now(), date: dateStr() });
+        saveThreads();
+        // ハルのよもぎへの反応（一旦無効）
+      }
+    } else {
+      // ハルが返答
+      showTyping();
+      const reply = await callClaude();
+      removeTyping();
+      addAIMessage(reply);
+      speakText(reply);
+
+      // よもぎ割り込みチェック（ハル返答後のみ）
+      await checkYomogiIntervention();
+    }
+
+    resetSilenceTimer();
+  } catch(e) {
+    document.getElementById('yomogi-typing')?.remove();
+    removeTyping();
+    let msg = '接続できなかった。もう一回送ってみて。';
+    if (e.message === 'NO_API_KEY') msg = '⚠️ APIキーが未設定です。スレッド一覧の🔑ボタンから設定してください。';
+    else if (e.message === 'NETWORK_ERROR') msg = '⚠️ ネットワークエラー。インターネット接続を確認してください。';
+    else if (e.message.includes('401')) msg = '⚠️ APIキーが無効です。🔑ボタンから正しいキーを設定してください。';
+    else if (e.message.includes('403')) msg = '⚠️ APIキーのアクセス権限エラー。（' + e.message + '）';
+    else msg = '⚠️ エラー: ' + e.message;
+    addAIMessage(msg);
+  } finally {
+    isWaiting = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+async function callClaude() {
+  const apiKey = localStorage.getItem(API_KEY_STORE);
+  if (!apiKey || !apiKey.startsWith('sk-')) throw new Error('NO_API_KEY');
+  const cfg = MODE_CONFIG[currentThread.mode] || MODE_CONFIG.friend;
+  const profile = loadProfile();
+  const profilePrompt = buildProfilePrompt(profile);
+  const hasHistory = currentThread.messages.filter(m => m.role === 'user').length > 1;
+
+  // 現在時刻
+  const now2 = new Date();
+  const timeStr = now2.toLocaleString('ja-JP', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit', weekday:'short' });
+
+  // 前回からの経過時間
+  let elapsedStr = '';
+  const lastUpdated = currentThread.updatedAt || currentThread.createdAt;
+  if (lastUpdated && hasHistory) {
+    const diff = now2 - new Date(lastUpdated);
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(mins / 60);
+    const days = Math.floor(hours / 24);
+    if (days >= 1) elapsedStr = `前回の会話から約${days}日経っています。`;
+    else if (hours >= 1) elapsedStr = `前回の会話から約${hours}時間経っています。`;
+    else if (mins >= 5) elapsedStr = `前回の会話から約${mins}分経っています。`;
+  }
+
+  // 位置情報を取得（30分キャッシュ）
+  let locationStr = '';
+  const now3 = Date.now();
+  if (window._cachedLocation && window._locationTime && (now3 - window._locationTime < 30 * 60 * 1000)) {
+    locationStr = window._cachedLocation;
+  } else if (navigator.geolocation) {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000, maximumAge: 0 });
+      });
+      const lat = pos.coords.latitude.toFixed(4);
+      const lng = pos.coords.longitude.toFixed(4);
+      locationStr = `ユーザーの現在地：緯度${lat}・経度${lng}。近くの場所を聞かれたらweb検索で調べてください。`;
+      window._cachedLocation = locationStr;
+      window._locationTime = now3;
+    } catch(e) {}
+  }
+
+  const systemPrompt = cfg.system
+    + (profilePrompt ? '\n\n' + profilePrompt : '')
+    + '\n\n現在の日時：' + timeStr + '。ユーザーに時刻を聞かれたらこの情報を元に答えてください。'
+    + (elapsedStr ? '\n' + elapsedStr : '')
+    + (locationStr ? '\n' + locationStr : '')
+    + (hasHistory ? '\n\n【重要】前回の会話から続いています。温度感・ノリ・文脈をそのまま引き継いでください。' : '');
+  // よもぎ・挨拶・紹介・沈黙メッセージを除外してメインキャラの会話履歴を構築
+  const recent = currentThread.messages
+    .filter(m => !m.content.startsWith('[よもぎ]') && !m.content.startsWith('[紹介]'))
+    .slice(-20)
+    .map(m => ({ 
+      role: m.role === 'user' ? 'user' : 'assistant', 
+      content: m.content.replace(/^\[挨拶\] |^\[沈黙\] /, '')
+    }));
+  
+  let res;
+  try {
+    res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ 
+        model: 'claude-haiku-4-5-20251001', 
+        max_tokens: 2000, 
+        system: systemPrompt, 
+        messages: recent,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+      })
+    });
+  } catch(networkErr) {
+    throw new Error('NETWORK_ERROR');
+  }
+  
+  if (!res.ok) {
+    let errMsg = 'API error ' + res.status;
+    try { const err = await res.json(); errMsg = err.error?.message || errMsg; } catch {}
+    throw new Error(errMsg);
+  }
+  const data = await res.json();
+  
+  // web_searchが使われた場合、検索結果を含めて再度呼び出す
+  if (data.stop_reason === 'tool_use') {
+    const toolResultMessages = [
+      ...recent,
+      { role: 'assistant', content: data.content },
+      { role: 'user', content: data.content
+          .filter(b => b.type === 'tool_use')
+          .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '検索を実行しました' }))
+      }
+    ];
+    let res2;
+    try {
+      res2 = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2000, system: systemPrompt, messages: toolResultMessages, tools: [{ type: 'web_search_20250305', name: 'web_search' }] })
+      });
+    } catch(e) { throw new Error('NETWORK_ERROR'); }
+    const data2 = await res2.json();
+    const textBlock2 = data2.content.find(b => b.type === 'text');
+    if (textBlock2) return textBlock2.text;
+    return data2.content[0]?.text || '';
+  }
+
+  // web_searchツール使用時はtextブロックを探す
+  const textBlock = data.content.find(b => b.type === 'text');
+  if (textBlock) return textBlock.text;
+  return data.content[0]?.text || '';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ DELETE
+function askDeleteThread(e, id, name) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  deleteThreadId = id;
+  document.getElementById('delete-thread-name').textContent = name;
+  document.getElementById('reset-modal').classList.add('active');
+}
+
+function confirmDeleteThread() {
+  threads = threads.filter(t => t.id !== deleteThreadId);
+  saveThreads();
+  closeModals();
+  renderThreadList();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ PLAN
+function getPlan() { return localStorage.getItem(PLAN_STORE) || 'free'; }
+
+function updatePlanBadge() {
+  const plan = getPlan();
+  const badge = document.getElementById('plan-badge');
+  const labels = { free: 'FREE', standard: 'STANDARD', premium: 'PREMIUM' };
+  badge.textContent = labels[plan] || 'FREE';
+  badge.className = 'plan-badge' + (plan === 'standard' ? ' standard' : plan === 'premium' ? ' premium' : '');
+  ['free','standard','premium'].forEach(p => {
+    const card = document.getElementById('plan-' + p);
+    if (card) card.classList.toggle('selected', plan === p);
+  });
+}
+
+function setPlan(plan) {
+  localStorage.setItem(PLAN_STORE, plan);
+  updatePlanBadge();
+  renderThreadList();
+  closeModals();
+  const labels = { free: 'FREEプランに変更しました', standard: 'STANDARDプランに変更しました', premium: 'PREMIUMプランに変更しました' };
+  showToast(labels[plan] || '変更しました');
+}
+
+function showPlanModal() {
+  updatePlanBadge();
+  document.getElementById('plan-modal').classList.add('active');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ API KEY
+function showApiModal() { document.getElementById('api-key-input').value = localStorage.getItem(API_KEY_STORE) || ''; document.getElementById('api-modal').classList.add('active'); }
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (key) { localStorage.setItem(API_KEY_STORE, key); updateApiBanner(); showToast('APIキーを保存しました'); }
+  closeModals();
+}
+function updateApiBanner() {
+  const key = localStorage.getItem(API_KEY_STORE);
+  const banner = document.getElementById('api-banner');
+  if (banner) { if (key && key.startsWith('sk-')) banner.classList.add('hidden'); else banner.classList.remove('hidden'); }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ STORAGE
+function loadThreads() { try { const r = localStorage.getItem(THREADS_STORE); return r ? JSON.parse(r) : []; } catch { return []; } }
+function saveThreads() { try { localStorage.setItem(THREADS_STORE, JSON.stringify(threads)); } catch {} }
+function saveNow() { saveThreads(); showToast('保存しました'); }
+
+// ━━━━━━━━━━━━━━━━━━━━━━ UTILS
+function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); }
+function now() { const d = new Date(); return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function dateStr() { const d = new Date(); return `${d.getMonth()+1}月${d.getDate()}日`; }
+function formatDate(iso) {
+  const d = new Date(iso), now = new Date();
+  const diff = now - d;
+  if (diff < 60000) return 'たった今';
+  if (diff < 3600000) return Math.floor(diff/60000) + '分前';
+  if (diff < 86400000) return Math.floor(diff/3600000) + '時間前';
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function scrollBottom() {
+  const container = document.getElementById('messages');
+  const doScroll = () => { container.scrollTop = container.scrollHeight + 9999; };
+  doScroll();
+  setTimeout(doScroll, 100);
+  setTimeout(doScroll, 300);
+  setTimeout(doScroll, 600);
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━ MESSAGE DELETE
+let deleteTargetIndex = -1;
+let deleteTargetInner = null;
+let deleteTargetBg = null;
+
+function askDeleteMessage(index, inner, bg) {
+  deleteTargetIndex = index;
+  deleteTargetInner = inner;
+  deleteTargetBg = bg;
+  document.getElementById('msg-delete-modal').classList.add('active');
+}
+
+function cancelMsgDelete() {
+  if (deleteTargetInner) {
+    deleteTargetInner.style.transform = 'translateX(0)';
+    deleteTargetBg.style.transform = 'translateX(100%)';
+  }
+  deleteTargetIndex = -1;
+  deleteTargetInner = null;
+  deleteTargetBg = null;
+  document.getElementById('msg-delete-modal').classList.remove('active');
+}
+
+function confirmMsgDelete() {
+  if (deleteTargetIndex >= 0 && currentThread) {
+    currentThread.messages.splice(deleteTargetIndex, 1);
+    currentThread.updatedAt = new Date().toISOString();
+    saveThreads();
+    renderMessages();
+  }
+  deleteTargetIndex = -1;
+  deleteTargetInner = null;
+  deleteTargetBg = null;
+  document.getElementById('msg-delete-modal').classList.remove('active');
+}
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function handleKey(e) { /* 送信ボタンのみで送信 */ }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+// 画面非表示時に読み上げを停止
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    speechSynthesis.cancel();
+    speakEnabled = false;
+    const btn = document.getElementById('speak-btn');
+    if (btn) {
+      btn.style.opacity = '0.4';
+      btn.style.filter = 'grayscale(1)';
+    }
+  }
+});
+
+let toastTimer = null;
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.classList.remove('show'); toastTimer = null; }, duration);
+}
+
+if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); }); }
+
+// キーボード表示時のスクロール対応
+if (window.visualViewport) {
+  const updateAppHeight = () => {
+    const app = document.getElementById('app');
+    if (app && app.classList.contains('active')) {
+      app.style.height = window.visualViewport.height + 'px';
+      app.style.top = window.visualViewport.offsetTop + 'px';
+      const msgs = document.getElementById('messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight + 9999;
+    }
+  };
+  window.visualViewport.addEventListener('resize', updateAppHeight);
+  window.visualViewport.addEventListener('scroll', updateAppHeight);
+}
+</script>
+</body>
+</html>
